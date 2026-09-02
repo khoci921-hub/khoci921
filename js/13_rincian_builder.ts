@@ -46,7 +46,7 @@ export var RB_PRESETS = {
 };
 
 // Koleksi dari DB (rincian_presets): { include: [{id, item}], ... }
-export var RB_DB_PRESETS = { include: [], exclude: [], benefit: [], persyaratan: [] };
+export var RB_DB_PRESETS: { include: any[]; exclude: any[]; benefit: any[]; persyaratan: any[]; tahapan: any[] } = { include: [], exclude: [], benefit: [], persyaratan: [], tahapan: [] };
 export var RB_DB_LOADED = false;
 export var RB_UNDO_STACK = [];
 export var RB_UNDO_TIMER = null;

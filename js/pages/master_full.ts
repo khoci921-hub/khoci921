@@ -651,7 +651,7 @@ export async function submitMaster(isDraft) {
       return Promise.resolve({ key, url: null });
     });
     const uploadResults = await Promise.all(uploadPromises);
-    const um = {};
+    const um: Record<string, any> = {};
     uploadResults.forEach((r) => { um[r.key] = r.url; });
     const filePhoto = um.photo || null;
     const fileJft = um.jft || null;

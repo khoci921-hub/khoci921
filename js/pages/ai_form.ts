@@ -1133,7 +1133,7 @@ async function uploadFilesDirectlyBase64(filesObj, folder) {
     var f = new File([blob], file.name || key + '.jpg', {
       type: file.mime || 'application/octet-stream',
     });
-    return uploadToCloudinary(f).then(function(url) { return { key: key, url: url }; });
+    return uploadToCloudinary(f, {}).then(function(url) { return { key: key, url: url }; });
   });
   var results = await Promise.all(uploadPromises);
   var uploadedUrls: Record<string, any> = {};
