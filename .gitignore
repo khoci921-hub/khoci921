@@ -1,0 +1,14 @@
+.env.local
+# Sandbox env (isian UI API Keys) — jangan pernah ter-commit
+.env
+node_modules/
+.convex/
+dist/
+# Metadata internal Freebuff (preview harness) — bukan bagian proyek
+.freebuff/
+
+# Local Netlify folder
+
+# stray file Windows (nama reserved) — jangan pernah diikutkan
+nul
+.netlify

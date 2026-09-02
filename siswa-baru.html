@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta name="referrer" content="no-referrer">
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ASJ - Pendaftaran Siswa (AI Assistant)</title>
+  <link rel="manifest" href="/manifest.webmanifest?v=8f163ba13c">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=b90abf8d0a">
+  
+  <link rel="icon" type="image/png" href="https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/logo-removebg-preview.webp">
+  <link rel="shortcut icon" type="image/png" href="https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/logo-removebg-preview.webp">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#020617">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ASJ Portal">
+  
+<!--HEAD_SHARED_START-->
+    <link rel="stylesheet" href="/vendor/font-awesome/css/all.min.css?v=8230c4590e">
+    <link rel="stylesheet" href="/fonts/fonts.css?v=1dd324a9c7">
+    <!-- Preload font kritis (Montserrat, UI font) — href & url() di fonts.css memakai ?v yang sama. -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/montserrat-latin.woff2?v=9b1446d51c" crossorigin>
+<!--HEAD_SHARED_END-->
+  <style>
+    body { background-color: #020617; color: #f8fafc; font-family: sans-serif; overflow: hidden; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    .fade-in { animation: fadeIn 0.4s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 767px) {
+      #chatPanel { height: calc(100vh - 42px); }
+      #formPanel { height: calc(100vh - 42px); }
+      #sendBtn { min-height: 44px; min-width: 44px; }
+      #userInput { min-height: 44px; }
+    }
+  </style>
+  <link rel="stylesheet" crossorigin href="/assets/main.css?v=ed681b7b61">
+</head><body data-page="siswa-baru" class="flex flex-col md:flex-row h-screen w-full relative" onload="initApp()">
+<!--THEME_INIT_START-->
+<script>try{var _t=localStorage.getItem('asj_theme');document.body.classList.add(_t==='SAKURA'?'theme-light':'theme-dark')}catch(e){document.body.classList.add('theme-dark')}</script>
+<!--THEME_INIT_END-->
+  <!-- BACK TO PORTAL -->
+  <a href="/" class="fixed top-4 left-4 z-[100] flex items-center gap-2 px-4 py-2 bg-black/70 hover:bg-black/90 text-white text-xs font-bold rounded-full border border-white/20 backdrop-blur-sm transition-all shadow-lg hover:scale-105" aria-label="Kembali ke Portal">
+    <i class="fas fa-arrow-left"></i>
+    <span class="hidden sm:inline">Portal</span>
+  </a>
+
+  <!-- Skip link: lompat langsung ke konten utama (WCAG 2.4.1) -->
+  <a href="#formPanel" class="skip-link">Lewati ke konten utama</a>
+
+
+  <!-- TAB MOBILE (Tersembunyi di Desktop) -->
+  <div class="md:hidden flex w-full bg-slate-900 border-b border-slate-800 z-50 shadow-md">
+    <button id="btnTabChat" onclick="switchTab('chat')" class="flex-1 py-3 text-xs font-bold bg-amber-600/20 text-amber-400 border-b-2 border-amber-500 transition-colors"><i class="fas fa-crown mr-2"></i> Chat Jeklin</button>
+    <button id="btnTabForm" onclick="switchTab('form')" class="flex-1 py-3 text-xs font-bold text-slate-400 border-b-2 border-transparent transition-colors"><i class="fas fa-file-alt mr-2"></i> Form Siswa</button>
+  </div>
+
+  <!-- PANEL KIRI: CHAT JEKLIN -->
+  <div id="chatPanel" class="w-full md:w-[40%] h-[calc(100vh-42px)] md:h-full bg-slate-900 border-r border-slate-800 flex md:flex flex-col z-20">
+    <div class="p-3 bg-slate-950 border-b border-slate-800 flex items-center gap-3 shadow-lg relative overflow-hidden">
+      <div class="absolute -top-4 -right-4 w-16 h-16 bg-amber-500 rounded-full blur-2xl opacity-20"></div>
+      <div class="w-10 h-10 rounded-full bg-amber-500 p-0.5 shadow-[0_0_15px_rgba(245,158,11,0.4)] flex-shrink-0">
+        <img src="https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/jeklin.png" alt="Qween Jeklin" class="w-full h-full rounded-full object-cover">
+      </div>
+      <div>
+        <h2 class="text-sm font-bold text-amber-400">Qween Jeklin 👑</h2>
+        <p class="text-[10px] text-slate-400"><span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>Asisten Pendaftaran ASJ</p>
+      </div>
+    </div>
+    
+    <div id="chatBox" class="flex-1 overflow-y-auto p-4 space-y-4 pb-24 md:pb-4"></div>
+
+    <div class="p-3 bg-slate-950 border-t border-slate-800 flex gap-2">
+      <input type="text" id="userInput" class="flex-1 bg-slate-800 text-xs text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-500 transition-colors" placeholder="Ketik balasanmu di sini…" onkeypress="handleEnter(event)">
+      <button type="button" id="sendBtn" onclick="sendMessage()" aria-label="Kirim" data-lang-aria="ui.send" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-xl transition shadow-[0_4px_10px_0_rgba(245,158,11,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <!-- PANEL KANAN: PREVIEW FORM -->
+  <main id="formPanel" aria-label="Form pendaftaran siswa" tabindex="-1" class="hidden md:block w-full md:w-[60%] h-[calc(100vh-42px)] md:h-full overflow-y-auto bg-slate-950 p-4 md:p-8 relative">
+    <div class="max-w-3xl mx-auto pb-20">
+      
+      <div class="flex justify-between items-center mb-6 bg-slate-900/50 p-4 rounded-xl border border-slate-800 shadow-lg">
+        <div class="flex items-center gap-3">
+          <img src="https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/logo_asj.png" alt="ASJ Logo" class="h-10 object-contain drop-shadow-md">
+          <div>
+            <h1 class="text-sm md:text-lg font-black text-white leading-tight">FORM SISWA BARU ASJ</h1>
+            <p class="text-[10px] text-slate-400">Jawab pertanyaan Jeklin untuk mengisi form otomatis.</p>
+          </div>
+        </div>
+        <button type="button" id="btnSaveDB" onclick="saveToDatabase()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] md:text-xs font-bold px-5 py-2.5 rounded-lg transition shadow-[0_0_15px_rgba(16,185,129,0.4)] flex items-center gap-2"><i class="fas fa-paper-plane"></i> SUBMIT DATA</button>
+      </div>
+
+      <div id="aiTypingStatus" class="hidden text-[10px] text-amber-400 font-bold mb-4 bg-amber-900/20 p-2 rounded border border-amber-500/20 flex items-center"><i class="fas fa-magic fa-spin mr-2"></i> Jeklin sedang menganalisis datamu…</div>
+
+      <!-- KOTAK BIODATA -->
+      <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-5 mb-5 shadow-lg">
+        <h2 class="text-xs font-bold text-sky-400 mb-4 uppercase tracking-wider border-b border-slate-800 pb-2"><i class="fas fa-address-card mr-1"></i> Data Pribadi</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="col-span-1 md:col-span-2"><label class="block text-[10px] font-bold text-slate-400 mb-1">NAMA LENGKAP</label><input type="text" id="f_nama" aria-label="Nama Lengkap" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none" readonly></div>
+          <div><label class="block text-[10px] font-bold text-slate-400 mb-1">TEMPAT, TANGGAL LAHIR</label><input type="text" id="f_ttl" aria-label="Tempat Tanggal Lahir" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none" readonly></div>
+          <div><label class="block text-[10px] font-bold text-slate-400 mb-1">GENDER</label><input type="text" id="f_gender" aria-label="Gender" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none" readonly></div>
+          <div><label class="block text-[10px] font-bold text-slate-400 mb-1">AGAMA</label><input type="text" id="f_agama" aria-label="Agama" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none" readonly></div>
+          <div><label class="block text-[10px] font-bold text-slate-400 mb-1">EMAIL</label><input type="text" id="f_email" aria-label="Email" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none" readonly></div>
+          <div class="col-span-1 md:col-span-2"><label class="block text-[10px] font-bold text-slate-400 mb-1">ALAMAT LENGKAP</label><input type="text" id="f_alamat" aria-label="Alamat Lengkap" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none" readonly></div>
+          <div class="col-span-1 md:col-span-2"><label class="block text-[10px] font-bold text-slate-400 mb-1">PENDIDIKAN TERAKHIR</label><input type="text" id="f_pendidikan" aria-label="Pendidikan" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none" readonly></div>
+          <div><label class="block text-[10px] font-bold text-slate-400 mb-1">NO. WA SISWA</label><input type="text" id="f_wa_siswa" aria-label="WA Siswa" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none" readonly></div>
+          <div><label class="block text-[10px] font-bold text-slate-400 mb-1">NO. WA ORTU / WALI</label><input type="text" id="f_wa_ortu" aria-label="WA Ortu Wali" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none" readonly></div>
+        </div>
+      </div>
+
+      <!-- KOTAK UPLOAD DOKUMEN -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-slate-900 border border-slate-700 p-4 rounded-xl flex items-center gap-3 shadow-lg">
+          <div class="w-12 h-12 rounded-lg bg-sky-600 flex items-center justify-center text-white text-xl flex-shrink-0"><i class="fas fa-id-card"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-[10px] font-bold text-sky-400 mb-1">SCAN KTP</label>
+            <input type="file" accept=".pdf,image/*" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'ktp')">
+            <div id="status_ktp" aria-live="polite" class="text-[9px] text-emerald-400 mt-1 hidden font-bold truncate"></div>
+          </div>
+        </div>
+        <div class="bg-slate-900 border border-slate-700 p-4 rounded-xl flex items-center gap-3 shadow-lg">
+          <div class="w-12 h-12 rounded-lg bg-amber-600 flex items-center justify-center text-white text-xl flex-shrink-0"><i class="fas fa-users"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-[10px] font-bold text-amber-400 mb-1">SCAN KK</label>
+            <input type="file" accept=".pdf,image/*" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'kk')">
+            <div id="status_kk" aria-live="polite" class="text-[9px] text-emerald-400 mt-1 hidden font-bold truncate"></div>
+          </div>
+        </div>
+        <div class="bg-slate-900 border border-slate-700 p-4 rounded-xl flex items-center gap-3 shadow-lg">
+          <div class="w-12 h-12 rounded-lg bg-emerald-600 flex items-center justify-center text-white text-xl flex-shrink-0"><i class="fas fa-graduation-cap"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-[10px] font-bold text-emerald-400 mb-1">SCAN IJAZAH</label>
+            <input type="file" accept=".pdf" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'ijazah')">
+            <div id="status_ijazah" aria-live="polite" class="text-[9px] text-emerald-400 mt-1 hidden font-bold truncate"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Fase 3.5 L6: js/pages/siswa_baru.js = entry ESM — meng-import core sendiri
+       lewat bridge.js (i18n + api-client), jadi tag core terpisah tidak perlu lagi -->
+<!--SCRIPTS_SHARED_START-->
+<script type="importmap">
+{
+  "imports": {
+    "@sentry/browser": "/js/core/sentry-dummy.js"
+  }
+}
+</script>
+  <script type="module" src="/js/upload-guard.js?v=esm13"></script>
+  <!-- Fase 2: inline script dipindah ke js/pages/siswa_baru.js (isi byte-identik) -->
+  <script type="module" src="/js/pages/siswa_baru.js?v=esm14"></script>
+  <script type="module" src="/pwa.js?v=esm15"></script>
+<!--SCRIPTS_SHARED_END-->
+</body>
+</html>
+
+

@@ -1,0 +1,20 @@
+# Normalisasi line ending — semua file teks disimpan LF (konsisten prettier).
+# eol=lf: checkout selalu LF, build script (Node/Bun menulis \n) tidak lagi
+# memunculkan status "M" artefak di Windows (core.autocrlf=true).
+* text=auto eol=lf
+
+# File biner — jangan disentuh normalisasi
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.avif binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.sqlite binary

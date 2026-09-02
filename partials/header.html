@@ -1,0 +1,69 @@
+  <header id="asj-header" class="max-w-7xl mx-auto px-4 mt-6 relative text-white border border-white/10 shadow-2xl h-auto min-h-[14rem] md:h-56 flex items-end p-6 md:p-8 bg-cover bg-center transition-colors duration-700">
+    <div id="asj-header-overlay" class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent"></div>
+    
+    <div class="relative z-10 w-full flex flex-col md:flex-row justify-between items-start md:items-end gap-5">
+        <div class="flex items-center gap-5">
+           <img id="logo-asj" src="https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/logo-removebg-preview.webp" alt="Logo ASJ" class="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow-2xl" onerror="this.onerror=null;this.style.display='none';">
+           <div>
+               <div id="header-tagline" class="text-pink-300 text-xs md:text-sm font-bold tracking-[4px] mb-1" data-lang="header.tagline">日本への挑戦</div>
+               <h1 class="text-2xl md:text-4xl font-black italic tracking-wide drop-shadow-lg"><span data-lang="footer.title">PT AMANAH SAKURA JAPAN</span></h1>
+           </div>
+        </div>
+        
+        <!-- BAGIAN KANAN HEADER -->
+         <div class="flex flex-col items-end gap-3">
+             
+{{HAMBURGER_COMMENT}}             <div class="flex absolute top-4 right-4 z-30">
+                 <button data-action="toggleMobileMenu" class="w-10 h-10 flex items-center justify-center bg-black hover:bg-zinc-800 text-white rounded-full border border-white/60 transition{{HAMBURGER_CLASS_EXTRA}}" aria-label="Toggle Menu">
+                     <i id="mobile-menu-icon" class="fas fa-bars text-lg"></i>
+                 </button>
+             </div>
+
+             <!-- BARIS ATAS: Tombol Bahasa & Install App (desktop; di mobile ada di menu hamburger) -->
+             <div class="!hidden flex items-center gap-3">
+                 <button data-action="cobaInstallApp" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-sky-600 hover:from-emerald-500 hover:to-sky-500 text-white border border-emerald-400/30 rounded-full text-xs font-bold transition-colors shadow-[0_0_15px_rgba(118,185,0,0.4)] animate-pulse flex items-center">
+                     <i class="fas fa-mobile-alt mr-1.5"></i><span data-lang="ui.install_app"> Install App
+                 </span></button>
+
+                 <button onclick="setLanguage(CURRENT_LANG === 'id' ? 'jp' : 'id')" data-lang-title="header.language" class="px-3 py-2 bg-black hover:bg-zinc-800 text-white border border-white/60 rounded-full text-xs font-bold transition-colors shadow-lg flex items-center gap-1.5">
+                     <i class="fas fa-language"></i> <span id="lang-current">ID</span>
+                 </button>
+             </div>
+
+             <!-- BARIS BAWAH: Menu Login/Admin/Kandidat (Berubah sesuai status) -->
+             <div class="flex flex-wrap gap-3 mt-1">        
+                 <!-- JIKA BELUM LOGIN -->
+                 <div id="nav-mode" class="!hidden flex flex-wrap gap-3">
+                    <button data-action="bukaModalKandidat" data-action-arg='["login"]' data-lang="header.login" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-full text-sm font-bold transition-colors shadow-lg">Login Pelamar</button>
+                    <button data-action="bukaModalKandidat" data-action-arg='["daftar"]' data-lang="header.register" class="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white border border-white/60 rounded-full text-sm font-bold transition-colors">Daftar Akun</button>
+                    <button data-action="showLoginAdminMaster" class="w-10 h-10 flex items-center justify-center bg-red-600 hover:bg-red-500 text-white rounded-full text-sm font-bold transition-colors shadow-lg" aria-label="Panel Admin" data-lang-aria="header.admin"><i class="fas fa-shield-alt"></i></button>
+                 </div>
+
+                 <!-- JIKA LOGIN SEBAGAI ADMIN -->
+                 <div id="nav-admin-mode" class="!hidden hidden flex flex-wrap gap-3{{NAV_ADMIN_MARGIN}}">
+                    <button onclick="adminSwitchTab('mail'); changePage('admin');" class="relative w-10 h-10 flex items-center justify-center bg-black hover:bg-zinc-800 text-white border border-white/60 rounded-full transition-colors shadow-lg" title="Notifikasi Mail Baru" aria-label="Notifikasi Mail Baru" data-lang-aria="header.notif_mail">
+                        <i class="fas fa-bell"></i>
+                        <span id="admin-notif-badge" class="hidden absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-bounce">0</span>
+                    </button>
+
+                    <button data-action="bukaAdminAiCopilot" class="px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white border border-violet-300/40 rounded-full text-sm font-bold transition-colors shadow-lg" title="AI HR Copilot"><i class="fas fa-robot mr-1"></i><span data-lang="ui.ai_hr"> AI HR</span></button>
+                    <button data-action="changePage" data-action-arg='["public"]' class="px-5 py-2.5 bg-black hover:bg-zinc-800 text-white border border-white/60 rounded-full text-sm font-bold transition-colors"><i class="fas fa-globe mr-1"></i> <span data-lang="header.public">Publik</span></button>
+                    <button data-action="changePage" data-action-arg='["admin"]' class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-full text-sm font-bold transition-colors shadow-lg"><i class="fas fa-cogs mr-1"></i> <span data-lang="header.admin">Panel Admin</span></button>
+                    <button data-action="logoutApp" class="px-5 py-2.5 bg-black text-white border border-white/20 hover:bg-white/10 rounded-full text-sm font-bold transition-colors"><i class="fas fa-sign-out-alt mr-1"></i> <span data-lang="header.logout">Keluar</span></button>
+                 </div>
+
+                 <!-- JIKA LOGIN SEBAGAI KANDIDAT -->
+                 <div id="nav-kandidat-mode" class="!hidden hidden flex flex-wrap items-center gap-3{{NAV_KANDIDAT_MARGIN}}">
+                    <button onclick="changePage('kandidat'); document.getElementById('k-dash-riwayat').scrollIntoView({behavior:'smooth', block:'center'});" class="relative w-10 h-10 flex items-center justify-center bg-slate-800 border border-slate-600 hover:bg-slate-700 text-amber-400 rounded-full transition shadow-lg hover:scale-110" title="Notifikasi Lamaran" aria-label="Notifikasi Lamaran" data-lang-aria="header.notif_lamaran">
+                        <i class="fas fa-bell"></i>
+                        <span id="badge-notif-kandidat" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center hidden shadow-[0_0_10px_rgba(239,68,68,0.8)]">0</span>
+                    </button>
+                    
+                    <span class="px-5 py-2.5 bg-black text-emerald-300 border border-emerald-500/60 rounded-full text-sm font-bold" id="nama-kandidat-login"></span>
+                    <button data-action="changePage" data-action-arg='["kandidat"]' class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-full text-sm font-bold transition-colors shadow-lg"><i class="fas fa-id-card mr-1"></i> <span data-lang="header.dashboard">Dashboard</span></button>
+                    <button data-action="logoutApp" class="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-full text-sm font-bold transition-colors shadow-lg"><i class="fas fa-sign-out-alt mr-1"></i> <span data-lang="header.logout">Keluar</span></button>
+                 </div>
+             </div>
+         </div>
+     </div>
+   </header>

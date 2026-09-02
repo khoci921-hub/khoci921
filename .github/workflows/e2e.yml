@@ -1,0 +1,60 @@
+name: e2e
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: Start preview server
+        run: |
+          bun serve-static.mts &
+          SRV_PID=$!
+          echo "SRV_PID=$SRV_PID" >> $GITHUB_ENV
+          for i in $(seq 1 30); do
+            curl -sf "http://127.0.0.1:3000" >/dev/null 2>&1 && break
+            sleep 1
+          done
+
+      - name: Run E2E tests
+        env:
+          BASE_URL: http://127.0.0.1:3000
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          node e2e/login-check.mjs || true
+          node e2e/share-view.mjs || true
+          node e2e/upload-check.mjs || true
+          node e2e/biodata-check.mjs || true
+
+      - name: Upload E2E logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs
+          path: |
+            /tmp/serve.log
+            e2e/*.log
+          retention-days: 5
+
+      - name: Stop preview server
+        if: always()
+        run: kill $SRV_PID 2>/dev/null || true

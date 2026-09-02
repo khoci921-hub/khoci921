@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta name="referrer" content="no-referrer">
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ASJ AI - Qween Jeklin</title>
+  <link rel="manifest" href="/manifest.webmanifest?v=8f163ba13c">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=b90abf8d0a">
+  
+  <link rel="icon" type="image/png" href="https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/logo-removebg-preview.webp">
+  <link rel="shortcut icon" type="image/png" href="https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/logo-removebg-preview.webp">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#020617">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ASJ Portal">
+  
+<!--HEAD_SHARED_START-->
+    <link rel="stylesheet" href="/vendor/font-awesome/css/all.min.css?v=8230c4590e">
+    <link rel="stylesheet" href="/fonts/fonts.css?v=1dd324a9c7">
+    <!-- Preload font kritis (Montserrat, UI font) — href & url() di fonts.css memakai ?v yang sama. -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/montserrat-latin.woff2?v=9b1446d51c" crossorigin>
+<!--HEAD_SHARED_END-->
+  <style>
+    body { background-color: #020617; color: #f8fafc; font-family: sans-serif; overflow: hidden; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    .fade-in { animation: fadeIn 0.4s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    input[readonly], textarea[readonly] { cursor: default; }
+    /* Kontras & keterbacaan (2026-08-17): label di atas blok isian manual
+       diperbesar 0.66rem -> 0.75rem & dicerahkan #cbd5e1 -> #e2e8f0 di mode
+       dark (dulu 0.55rem = "mata semut"). Di mode light (SAKURA) kartu berubah
+       putih, jadi label dipakai warna gelap #334155 supaya tetap terbaca
+       (sebelumnya #cbd5e1 di atas putih = nyaris tak terlihat). */
+    .section-title { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; border-bottom: 1px solid rgba(51, 65, 85, 0.5); padding-bottom: 0.25rem; }
+    .label-micro { display: block; font-size: 0.75rem; color: #e2e8f0; margin-bottom: 0.15rem; }
+    body.theme-light .label-micro { color: #334155; }
+    /* .input-micro TIDAK men-set color (mengikuti warna body) supaya utility
+       text-* (mis. text-pink-300 pada field Katakana/JP) bisa menimpanya —
+       dan TIDAK dibungkus @layer components: blok <style> inline yang muncul
+       sebelum CSS main.css (di-inject Vite) bisa mengacak urutan layer global
+       (components jadi sebelum base) sehingga preflight malah menimpa
+       komponen => background & border hilang. Border dibuat terlihat supaya
+       tempat ketik manual jelas (dulu transparent = kolom tak terlihat). */
+    .input-micro { width: 100%; background-color: #1e293b; border-radius: 0.25rem; padding: 0.3rem 0.4rem; font-size: 0.78rem; outline: none; border: 1px solid #475569; }
+    .input-micro:focus { border-color: #5a8d00; }
+    @media (max-width: 767px) {
+      /* 100dvh = tinggi viewport DINAMIS iPhone Safari (URL bar naik/turun saat
+         scroll). Baris 100vh tetap sebagai fallback browser lama. */
+      #chatPanel { height: calc(100vh - 42px); height: calc(100dvh - 42px); }
+      #formPanel { height: calc(100vh - 42px); height: calc(100dvh - 42px); }
+      /* Bar input chat tidak tertutup home-indicator iPhone (safe-area). */
+      #chatPanel > div:last-child { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+      #sendBtn { min-height: 44px; min-width: 44px; }
+      #userInput { min-height: 44px; }
+      .input-micro { font-size: 0.84rem; padding: 0.4rem 0.5rem; }
+      .label-micro { font-size: 0.78rem; }
+      .section-title { font-size: 0.85rem; }
+    }
+  </style>
+  <!-- Fase 3.5 L6: js/pages/ai_form.js = entry ESM — meng-import core sendiri
+       lewat bridge.js (i18n + api-client), jadi tag core terpisah tidak perlu lagi -->
+  <script type="module" src="/js/upload-guard.js?v=esm13"></script>
+  <!-- Fase 2: inline script (konteks URL) dipindah ke js/pages/ai_form.js (isi byte-identik) -->
+  <link rel="stylesheet" crossorigin href="/assets/main.css?v=ed681b7b61">
+</head>
+<body data-page="ai-form" class="flex flex-col md:flex-row h-screen w-full relative" style="height:100vh;height:100dvh" onload="initApp()">
+<!--THEME_INIT_START-->
+<script>try{var _t=localStorage.getItem('asj_theme');document.body.classList.add(_t==='SAKURA'?'theme-light':'theme-dark')}catch(e){document.body.classList.add('theme-dark')}</script>
+<!--THEME_INIT_END-->
+  <!-- BACK TO PORTAL -->
+  <a href="/" class="fixed top-4 left-4 z-[100] flex items-center gap-2 px-4 py-2 bg-black/70 hover:bg-black/90 text-white text-xs font-bold rounded-full border border-white/20 backdrop-blur-sm transition-all shadow-lg hover:scale-105" aria-label="Kembali ke Portal">
+    <i class="fas fa-arrow-left"></i>
+    <span class="hidden sm:inline">Portal</span>
+  </a>
+  <!-- Skip link: lompat langsung ke konten utama (WCAG 2.4.1) -->
+  <a href="#formPanel" class="skip-link" data-lang="a11y.skip_to_content">Lewati ke konten utama</a>
+
+  <div class="md:hidden flex w-full bg-slate-900 border-b border-slate-800 z-50 shadow-md">
+    <button id="btnTabChat" aria-label="Tab Chat" onclick="switchTab('chat')" class="flex-1 py-3 text-xs font-bold bg-amber-600/20 text-amber-400 border-b-2 border-amber-500 transition-colors"><i class="fas fa-crown mr-2"></i> <span data-lang="form.ai_tab_chat">Chat Jeklin</span></button>
+    <button id="btnTabForm" aria-label="Tab Form CV" onclick="switchTab('form')" class="flex-1 py-3 text-xs font-bold text-slate-400 border-b-2 border-transparent transition-colors"><i class="fas fa-file-alt mr-2"></i> <span data-lang="form.ai_tab_cv">Preview CV</span></button>
+  </div>
+
+  <div id="chatPanel" class="w-full md:w-[35%] h-[calc(100vh-42px)] md:h-full bg-slate-900 border-r border-slate-800 flex md:flex flex-col z-20">
+    <div class="p-3 bg-slate-950 border-b border-slate-800 flex items-center gap-3 shadow-lg relative overflow-hidden">
+      <div class="absolute -top-4 -right-4 w-16 h-16 bg-amber-500 rounded-full blur-2xl opacity-20"></div>
+      <div class="w-10 h-10 rounded-full bg-amber-500 p-0.5 shadow-[0_0_15px_rgba(245,158,11,0.4)] flex-shrink-0">
+        <img src="https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/jeklin.png" alt="Qween Jeklin" class="w-full h-full rounded-full object-cover">
+      </div>
+      <div>
+        <h2 class="text-sm font-bold text-amber-400">Qween Jeklin 👑</h2>
+        <p class="text-[10px] text-slate-400"><span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span><span data-lang="form.ai_hrd">HRD ASJ (Boss's Daughter)</span></p>
+      </div>
+    </div>
+    
+    <div id="chatBox" class="flex-1 overflow-y-auto" aria-live="polite" p-3 space-y-4 pb-24 md:pb-4"></div>
+
+    <div class="p-3 bg-slate-950 border-t border-slate-800 flex gap-2">
+      <input type="text" id="userInput" aria-label="Ketik pesan" class="flex-1 bg-slate-800 text-xs text-white px-4 py-2.5 rounded-xl border border-slate-700 focus:outline-none focus:border-amber-500 transition-colors" placeholder="Ketik balasanmu di sini…" onkeypress="handleEnter(event)" data-lang-placeholder="form.ai_placeholder">
+      <button type="button" id="sendBtn" onclick="sendMessage()" aria-label="Kirim" data-lang-aria="ui.send" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-xl transition shadow-[0_4px_10px_0_rgba(245,158,11,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <div id="formPanel" tabindex="-1" class="hidden md:block w-full md:w-[65%] h-[calc(100vh-42px)] md:h-full overflow-y-auto bg-slate-950 p-3 md:p-6 relative">
+    <div class="max-w-5xl mx-auto pb-20">
+      
+      <div class="flex justify-between items-center mb-4 bg-slate-900/50 p-3 rounded-xl border border-slate-800 shadow-lg">
+        <div class="flex items-center gap-3">
+          <img id="logoAsj" src="" alt="ASJ Logo" class="h-8 md:h-10 object-contain drop-shadow-md">
+          <div>
+            <h1 class="text-sm md:text-base font-black text-white leading-tight" data-lang="form.ai_title">PREVIEW CV JEPANG</h1>
+            <p class="text-[10px] md:text-[11px] text-slate-400"><span data-lang="form.ai_edit_manual">Edit manual aktif.</span> <span id="formModeLabel" data-lang="form.ai_saved">Data tersimpan otomatis di perangkat.</span></p>
+          </div>
+        </div>
+        <button type="button" id="btnSaveDB" aria-label="Simpan ke database" onclick="saveToDatabase()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] md:text-xs font-bold px-4 py-2 rounded-lg transition shadow-lg flex items-center gap-2"><i class="fas fa-cloud-upload-alt"></i> <span data-lang="form.ai_simpan_db">SIMPAN DB</span></button>
+        <button type="button" onclick="toggleFormLanguage(); updateFormUI();" class="ml-2 bg-sky-600 hover:bg-sky-500 text-white text-[10px] md:text-xs font-bold px-3 py-2 rounded-lg transition shadow-lg"><i class="fas fa-language mr-1"></i><span id="lang-btn-ai">JP</span></button>
+      </div>
+
+      <div id="aiTypingStatus" aria-live="polite" class="hidden text-[10px] text-amber-400 font-bold mb-3 bg-amber-900/20 p-2 rounded border border-amber-500/20 flex items-center"><i class="fas fa-magic fa-spin mr-2"></i> <span data-lang="form.ai_analyzing">Qween Jeklin sedang menganalisis & translate datamu…</span></div>
+
+      <div class="bg-slate-900/40 border border-slate-800 rounded-lg p-3 mb-3 shadow">
+        <h2 class="section-title text-sky-400" data-lang="form.ai_identitas"><i class="fas fa-address-card mr-1"></i> 1. Identitas & Kontak</h2>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+          <div class="col-span-2 md:col-span-2"><label class="label-micro" data-lang="form.ai_nama">Nama Lengkap</label><input type="text" id="f_nama" class="input-micro" readonly></div>
+          <div class="col-span-2 md:col-span-2"><label class="label-micro" data-lang="form.ai_katakana">Katakana</label><input type="text" id="f_katakana" class="input-micro text-pink-300 font-bold" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_panggilan">Panggilan</label><input type="text" id="f_panggilan" class="input-micro" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_p_katakana">P. Katakana</label><input type="text" id="f_panggilan_katakana" class="input-micro text-pink-300 font-bold" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_tmp_lahir">Tmp Lahir</label><input type="text" id="f_tmplahir" class="input-micro" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_tgl_lahir">Tgl Lahir</label><input type="text" id="f_tgllahir" class="input-micro" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_umur">Umur</label><input type="text" id="f_umur" class="input-micro text-center" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_gender">Gender</label><input type="text" id="f_gender" class="input-micro text-center" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_agama">Agama</label><input type="text" id="f_agama" class="input-micro text-center" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_goldar">Gol. Darah</label><input type="text" id="f_goldar" class="input-micro text-center" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_status">Status Nikah</label><input type="text" id="f_status" class="input-micro text-center" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_anak">Anak</label><input type="text" id="f_anak" class="input-micro text-center" readonly></div>
+          <div class="col-span-2"><label class="label-micro" data-lang="form.ai_email">Email</label><input type="text" id="f_email" class="input-micro" readonly></div>
+          <div class="col-span-2 md:col-span-3"><label class="label-micro" data-lang="form.ai_alamat">Alamat Lengkap</label><input type="text" id="f_alamat" class="input-micro" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_hp">No. HP (WA)</label><input type="text" id="f_hp" class="input-micro" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_hp_darurat">HP Darurat</label><input type="text" id="f_hpdarurat" class="input-micro" readonly></div>
+          <div class="col-span-2 md:col-span-2"><label class="label-micro" data-lang="form.ai_ktp">NIK KTP</label><input type="text" id="f_ktp" class="input-micro" readonly></div>
+          <div class="col-span-2 md:col-span-2"><label class="label-micro" data-lang="form.ai_paspor">No. Paspor</label><input type="text" id="f_paspor" class="input-micro" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_sim">SIM</label><input type="text" id="f_sim" class="input-micro" readonly></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+        <div class="bg-slate-900/40 border border-slate-800 rounded-lg p-3 shadow">
+          <h2 class="section-title text-amber-400" data-lang="form.ai_fisik"><i class="fas fa-child mr-1"></i> 2. Fisik & Ukuran</h2>
+          <div class="grid grid-cols-3 gap-2">
+            <div><label class="label-micro" data-lang="form.ai_tb">Tinggi (cm)</label><input type="text" id="f_tb" class="input-micro text-center" readonly></div>
+            <div><label class="label-micro" data-lang="form.ai_bb">Berat (kg)</label><input type="text" id="f_bb" class="input-micro text-center" readonly></div>
+            <div><label class="label-micro" data-lang="form.ai_tangan">Tgn Dominan</label><input type="text" id="f_tangan" class="input-micro text-center" readonly></div>
+            <div><label class="label-micro" data-lang="form.ai_sepatu">Uk. Sepatu</label><input type="text" id="f_sepatu" class="input-micro text-center" readonly></div>
+            <div><label class="label-micro" data-lang="form.ai_baju">Uk. Baju</label><input type="text" id="f_baju" class="input-micro text-center" readonly></div>
+            <div><label class="label-micro" data-lang="form.ai_topi">Uk. Topi</label><input type="text" id="f_topi" class="input-micro text-center" readonly></div>
+            <div class="col-span-3"><label class="label-micro" data-lang="form.ai_tahan_ac">Sanggup Kerja Tanpa AC?</label><input type="text" id="f_tahan_ac" class="input-micro" readonly></div>
+          </div>
+        </div>
+        
+        <div class="bg-slate-900/40 border border-slate-800 rounded-lg p-3 shadow">
+          <h2 class="section-title text-red-400" data-lang="form.ai_medis"><i class="fas fa-notes-medical mr-1"></i> 3. Medis & Kebiasaan</h2>
+          <div class="grid grid-cols-4 gap-2">
+            <div><label class="label-micro" data-lang="form.ai_mata_kanan">Mata Kanan</label><input type="text" id="f_matakanan" class="input-micro text-center" readonly></div>
+            <div><label class="label-micro" data-lang="form.ai_mata_kiri">Mata Kiri</label><input type="text" id="f_matakiri" class="input-micro text-center" readonly></div>
+            <div class="col-span-2"><label class="label-micro" data-lang="form.ai_kacamata">Kacamata?</label><input type="text" id="f_kacamata" class="input-micro text-center" readonly></div>
+            <div class="col-span-2"><label class="label-micro" data-lang="form.ai_buta_warna">Buta Warna</label><input type="text" id="f_butawarna" class="input-micro" readonly></div>
+            <div class="col-span-2"><label class="label-micro" data-lang="form.ai_tato">Tato / Tindik</label><input type="text" id="f_tato" class="input-micro" readonly></div>
+            <div><label class="label-micro" data-lang="form.ai_merokok">Rokok</label><input type="text" id="f_rokok" class="input-micro" readonly></div>
+            <div><label class="label-micro" data-lang="form.ai_alkohol">Alkohol</label><input type="text" id="f_alkohol" class="input-micro" readonly></div>
+            <div class="col-span-2 md:col-span-4 space-y-1 mt-2 p-2 bg-slate-800/40 rounded border border-slate-700/50">
+               <div class="grid grid-cols-2 gap-2">
+                   <div><label class="label-micro">Alergi (ID)</label><textarea id="f_alergi_id" rows="1" class="input-micro resize-none" readonly></textarea></div>
+                   <div><label class="label-micro">Alergi (JP)</label><textarea id="f_alergi_jp" rows="1" class="input-micro text-pink-300 font-bold resize-none" readonly></textarea></div>
+               </div>
+               <div class="grid grid-cols-2 gap-2">
+                   <div><label class="label-micro">Penyakit (ID)</label><textarea id="f_medis_id" rows="1" class="input-micro resize-none" readonly></textarea></div>
+                   <div><label class="label-micro">Penyakit (JP)</label><textarea id="f_medis_jp" rows="1" class="input-micro text-pink-300 font-bold resize-none" readonly></textarea></div>
+               </div>
+               <div class="grid grid-cols-2 gap-2">
+                   <div><label class="label-micro">Kecelakaan (ID)</label><textarea id="f_laka_id" rows="1" class="input-micro resize-none" readonly></textarea></div>
+                   <div><label class="label-micro">Kecelakaan (JP)</label><textarea id="f_laka_jp" rows="1" class="input-micro text-pink-300 font-bold resize-none" readonly></textarea></div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/40 border border-slate-800 rounded-lg p-3 mb-3 shadow border-l-2 border-l-purple-500">
+        <h2 class="section-title text-purple-400" data-lang="form.ai_wawancara"><i class="fas fa-comments mr-1"></i> 4. Jiko PR & Wawancara (Auto-Translate)</h2>
+        <div class="mb-2"><label class="label-micro text-sky-400 font-bold" data-lang="form.ai_riwayat_jepang">Pernah ke Jepang sebelumnya?</label><input type="text" id="f_riwayatjepang" class="input-micro w-1/3" readonly></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="space-y-2">
+             <div><label class="label-micro" data-lang="form.ai_promosi">Promosi Diri / Perkenalan</label><textarea id="f_promo_id" rows="1" class="input-micro resize-none mb-0.5" readonly placeholder="ID…"></textarea><textarea id="f_promo_jp" rows="1" class="input-micro text-purple-300 font-bold resize-none" readonly placeholder="JP…"></textarea></div>
+             <div><label class="label-micro">Kelebihan / 長所</label><textarea id="f_lebih_id" rows="1" class="input-micro resize-none mb-0.5" readonly placeholder="ID…"></textarea><textarea id="f_lebih_jp" rows="1" class="input-micro text-purple-300 font-bold resize-none" readonly placeholder="JP…"></textarea></div>
+             <div><label class="label-micro">Kekurangan / 短所</label><textarea id="f_kurang_id" rows="1" class="input-micro resize-none mb-0.5" readonly placeholder="ID…"></textarea><textarea id="f_kurang_jp" rows="1" class="input-micro text-purple-300 font-bold resize-none" readonly placeholder="JP…"></textarea></div>
+              <div><label class="label-micro" data-lang="form.ai_hobi">Hobi</label><textarea id="f_hobi_id" rows="1" class="input-micro resize-none mb-0.5" readonly placeholder="ID…"></textarea><textarea id="f_hobi_jp" rows="1" class="input-micro text-purple-300 font-bold resize-none" readonly placeholder="JP…"></textarea></div>
+              <div><label class="label-micro" data-lang="form.ai_keahlian">Keahlian Khusus</label><textarea id="f_keahlian_id" rows="1" class="input-micro resize-none mb-0.5" readonly placeholder="ID…"></textarea><textarea id="f_keahlian_jp" rows="1" class="input-micro text-purple-300 font-bold resize-none" readonly placeholder="JP…"></textarea></div>
+          </div>
+          <div class="space-y-2">
+             <div><label class="label-micro" data-lang="form.ai_motivasi">Motivasi ke Jepang</label><textarea id="f_moti_id" rows="1" class="input-micro resize-none mb-0.5" readonly placeholder="ID…"></textarea><textarea id="f_moti_jp" rows="1" class="input-micro text-purple-300 font-bold resize-none" readonly placeholder="JP…"></textarea></div>
+             <div><label class="label-micro" data-lang="form.ai_alasan">Alasan Memilih Bidang Ini</label><textarea id="f_alasan_id" rows="1" class="input-micro resize-none mb-0.5" readonly placeholder="ID…"></textarea><textarea id="f_alasan_jp" rows="1" class="input-micro text-purple-300 font-bold resize-none" readonly placeholder="JP…"></textarea></div>
+             <div><label class="label-micro" data-lang="form.ai_rencana">Rencana Setelah Pulang ke ID</label><textarea id="f_pulang_id" rows="1" class="input-micro resize-none mb-0.5" readonly placeholder="ID…"></textarea><textarea id="f_pulang_jp" rows="1" class="input-micro text-purple-300 font-bold resize-none" readonly placeholder="JP…"></textarea></div>
+             <div><label class="label-micro" data-lang="form.ai_keinginan">Keinginan Pribadi (Target)</label><textarea id="f_keinginan_id" rows="1" class="input-micro resize-none mb-0.5" readonly placeholder="ID…"></textarea><textarea id="f_keinginan_jp" rows="1" class="input-micro text-purple-300 font-bold resize-none" readonly placeholder="JP…"></textarea></div>
+             <div><label class="label-micro" data-lang="form.ai_tujuan">Tujuan Kerja di Jepang</label><textarea id="f_tujuan_id" rows="1" class="input-micro resize-none mb-0.5" readonly placeholder="ID…"></textarea><textarea id="f_tujuan_jp" rows="1" class="input-micro text-purple-300 font-bold resize-none" readonly placeholder="JP…"></textarea></div>
+             <div class="grid grid-cols-3 gap-2">
+               <div><label class="label-micro" data-lang="form.ai_lama">Lama di Jepang</label><input type="text" id="f_lama" class="input-micro text-center" readonly></div>
+               <div><label class="label-micro" data-lang="form.ai_gaji">Gaji (Yen)</label><input type="text" id="f_gaji_yen" class="input-micro text-center text-amber-300" readonly></div>
+               <div><label class="label-micro" data-lang="form.ai_tabungan">Tabungan</label><input type="text" id="f_tabungan" class="input-micro text-center text-amber-300" readonly></div>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+        <div class="bg-slate-900/40 border border-slate-800 rounded-lg p-3 shadow">
+          <div class="flex justify-between items-end mb-2"><h2 class="section-title text-emerald-400 mb-0" data-lang="form.ai_pendidikan"><i class="fas fa-graduation-cap mr-1"></i> Pendidikan</h2></div>
+          <div id="c_sertifikat" class="mb-2 grid grid-cols-3 gap-1.5 p-1.5 bg-slate-800/50 rounded border border-slate-700">
+            <div><label class="label-micro" data-lang="form.ai_bhs">Bahasa Jepang (日本語能力)</label><input id="f_bhs_jepang" type="text" class="input-micro" readonly list="jft-options"></div>
+            <div><label class="label-micro" data-lang="form.ai_nilai">Nilai (点数)</label><input id="f_nilai" type="text" class="input-micro" readonly></div>
+            <div><label class="label-micro" data-lang="form.ai_lisensi">Lisensi / SSW (特定技能)</label><input id="f_lisensi" type="text" class="input-micro" readonly list="ssw-options"></div>
+          </div>
+          <datalist id="jft-options">
+            <option value="N1"></option><option value="N2"></option><option value="N3"></option>
+            <option value="N4"></option><option value="N5"></option><option value="JFT BASIC A2"></option>
+            <option value="BELUM LULUS"></option><option value="BELUM TES"></option>
+          </datalist>
+          <datalist id="ssw-options">
+            <option value="KAIGO">KAIGO (介護)</option><option value="BUILDING CLEANING">BUILDING CLEANING (ビルクリーニング)</option>
+            <option value="FOUNDRY & PLASTIC">FOUNDRY & PLASTIC (素形材産業)</option><option value="INDUSTRIAL MACHINERY">INDUSTRIAL MACHINERY (産業機械製造業)</option>
+            <option value="ELECTRIC & ELECTRONIC">ELECTRIC & ELECTRONIC (電気・電子情報)</option><option value="CONSTRUCTION">CONSTRUCTION (建設)</option>
+            <option value="SHIPBUILDING">SHIPBUILDING (造船・舶用工業)</option><option value="AUTOMOBILE REPAIR">AUTOMOBILE REPAIR (自動車整備)</option>
+            <option value="AVIATION">AVIATION (航空)</option><option value="ACCOMMODATION">ACCOMMODATION (宿泊)</option>
+            <option value="AGRICULTURE">AGRICULTURE (農業)</option><option value="FISHERY">FISHERY (漁業)</option>
+            <option value="FOOD & BEVERAGE">FOOD & BEVERAGE (飲食料品製造業)</option><option value="RESTAURANT">RESTAURANT (外食業)</option>
+            <option value="FORESTRY">FORESTRY (林業)</option><option value="WOOD INDUSTRY">WOOD INDUSTRY (木材産業)</option>
+          </datalist>
+          <datalist id="pekerjaan-options">
+            <option value="OPERATOR PRODUKSI">OPERATOR PRODUKSI (工場作業員)</option><option value="ADMIN / STAFF ADMIN">ADMIN / STAFF ADMIN (事務員)</option>
+            <option value="SALES / MARKETING">SALES / MARKETING (営業)</option><option value="KASIR">KASIR (レジ係)</option>
+            <option value="KOKI / CHEF">KOKI / CHEF (調理師)</option><option value="PELAYAN / WAITER">PELAYAN / WAITER (ウェイター)</option>
+            <option value="CLEANING SERVICE">CLEANING SERVICE (清掃員)</option><option value="SATPAM / SECURITY">SATPAM / SECURITY (警備員)</option>
+            <option value="SOPIR / DRIVER">SOPIR / DRIVER (運転手)</option><option value="BURUH PABRIK">BURUH PABRIK (工場労働者)</option>
+            <option value="KARYAWAN SWASTA">KARYAWAN SWASTA (会社員)</option><option value="PEGAWAI TOKO">PEGAWAI TOKO (店員)</option>
+            <option value="GURU / PENGAJAR">GURU / PENGAJAR (教師)</option><option value="PERAWAT">PERAWAT (看護師)</option>
+            <option value="MEKANIK">MEKANIK (整備士)</option><option value="TEKNISI">TEKNISI (技術者)</option>
+            <option value="WELDER / LAS">WELDER / LAS (溶接工)</option><option value="TUKANG BANGUNAN">TUKANG BANGUNAN (建設作業員)</option>
+            <option value="PETANI / PERKEBUNAN">PETANI / PERKEBUNAN (農業)</option><option value="NELAYAN">NELAYAN (漁師)</option>
+            <option value="RESEPSIONIS">RESEPSIONIS (受付)</option><option value="BARISTA">BARISTA (バリスタ)</option>
+            <option value="IBU RUMAH TANGGA">IBU RUMAH TANGGA (主婦)</option><option value="PELAJAR / MAHASISWA">PELAJAR / MAHASISWA (学生)</option>
+            <option value="BELUM BEKERJA">BELUM BEKERJA (無職)</option>
+          </datalist>
+          <div id="c_pendidikan" class="space-y-1.5"><div class="text-[9px] text-slate-500 italic py-1">Belum ada data…</div></div>
+        </div>
+        <div class="bg-slate-900/40 border border-slate-800 rounded-lg p-3 shadow">
+          <h2 class="section-title text-blue-400" data-lang="form.ai_pekerjaan_5"><i class="fas fa-briefcase mr-1"></i> Pekerjaan</h2>
+          <div id="c_pekerjaan" class="space-y-1.5"><div class="text-[9px] text-slate-500 italic py-1">Belum ada data…</div></div>
+        </div>
+        <div class="bg-slate-900/40 border border-slate-800 rounded-lg p-3 shadow">
+          <h2 class="section-title text-orange-400" data-lang="form.ai_keluarga"><i class="fas fa-users mr-1"></i> Keluarga (KK)</h2>
+          <div id="c_keluarga" class="space-y-1.5"><div class="text-[9px] text-slate-500 italic py-1">Belum ada data…</div></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/40 border border-slate-800 rounded-lg p-3 shadow mb-3">
+        <h2 class="section-title text-pink-400" data-lang="form.ai_kenalan_jp"><i class="fas fa-user-friends mr-1"></i> Kenalan di Jepang (Bilingual)</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div><label class="label-micro" data-lang="form.ai_nama_kenalan">Nama (ID)</label><input type="text" id="f_kenalan_nama_id" class="input-micro" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_katakana">Nama (Katakana)</label><input type="text" id="f_kenalan_nama_jp" class="input-micro text-pink-300 font-bold" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_hubungan">Hubungan (ID)</label><input type="text" id="f_kenalan_hub_id" class="input-micro" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_hubungan">Hubungan (JP)</label><input type="text" id="f_kenalan_hub_jp" class="input-micro text-pink-300 font-bold" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_pekerjaan">Pekerjaan (ID)</label><input type="text" id="f_kenalan_kerja_id" class="input-micro" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_pekerjaan">Pekerjaan (JP)</label><input type="text" id="f_kenalan_kerja_jp" class="input-micro text-pink-300 font-bold" readonly></div>
+          <div><label class="label-micro" data-lang="form.ai_usia">Usia</label><input type="text" id="f_kenalan_usia" class="input-micro" readonly></div>
+          <div class="col-span-2 md:col-span-4 mt-1">
+            <div class="grid grid-cols-2 gap-2">
+               <div><label class="label-micro" data-lang="form.ai_alamat_kenalan">Alamat di Jepang (ID/Romaji)</label><input type="text" id="f_kenalan_alamat_id" class="input-micro" readonly></div>
+               <div><label class="label-micro" data-lang="form.ai_alamat_kenalan">Alamat di Jepang (JP)</label><input type="text" id="f_kenalan_alamat_jp" class="input-micro text-pink-300 font-bold" readonly></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="bg-slate-900/60 border border-slate-700 p-3 rounded-lg shadow flex items-center gap-3">
+          <div class="w-10 h-10 rounded bg-sky-600 flex items-center justify-center text-white text-lg flex-shrink-0"><i class="fas fa-camera"></i></div>
+          <div class="flex-1">
+            <label class="block text-xs font-bold text-sky-400 mb-0.5" data-lang="form.ai_upload_foto">Upload Pas Foto</label>
+            <input type="file" accept="image/*" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="compressImage(event)">
+            <div id="compressStatus" class="text-[9px] text-emerald-400 mt-1 hidden"></div>
+          </div>
+          <img id="previewFoto" class="hidden h-14 w-12 object-cover rounded border border-slate-600 shadow" alt="">
+        </div>
+        <div class="bg-slate-900/60 border border-slate-700 p-3 rounded-lg shadow flex items-center gap-3">
+          <div class="w-10 h-10 rounded bg-amber-600 flex items-center justify-center text-white text-lg flex-shrink-0"><i class="fas fa-file-pdf"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-xs font-bold text-amber-400 mb-0.5" data-lang="form.ai_jft">Sertifikat JFT</label>
+            <input type="file" accept=".pdf" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'jft')">
+            <div id="status_jft" class="text-[9px] text-emerald-400 mt-1 hidden font-bold whitespace-nowrap overflow-hidden text-ellipsis"></div>
+          </div>
+        </div>
+        <div class="bg-slate-900/60 border border-slate-700 p-3 rounded-lg shadow flex items-center gap-3">
+          <div class="w-10 h-10 rounded bg-emerald-600 flex items-center justify-center text-white text-lg flex-shrink-0"><i class="fas fa-file-signature"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-xs font-bold text-emerald-400 mb-0.5" data-lang="form.ai_ssw">Sertifikat SSW</label>
+            <input type="file" accept=".pdf" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'ssw')">
+            <div id="status_ssw" class="text-[9px] text-emerald-400 mt-1 hidden font-bold whitespace-nowrap overflow-hidden text-ellipsis"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="bg-slate-900/60 border border-slate-700 p-3 rounded-lg shadow flex items-center gap-3">
+          <div class="w-10 h-10 rounded bg-rose-600 flex items-center justify-center text-white text-lg flex-shrink-0"><i class="fas fa-id-card"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-xs font-bold text-rose-400 mb-0.5" data-lang="form.ai_doc_ktp">KTP (PDF/JPG/PNG)</label>
+            <input type="file" accept=".pdf,image/*" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'ktp')">
+            <div id="status_ktp" class="text-[9px] text-emerald-400 mt-1 hidden font-bold whitespace-nowrap overflow-hidden text-ellipsis"></div>
+          </div>
+        </div>
+        <div class="bg-slate-900/60 border border-slate-700 p-3 rounded-lg shadow flex items-center gap-3">
+          <div class="w-10 h-10 rounded bg-orange-600 flex items-center justify-center text-white text-lg flex-shrink-0"><i class="fas fa-users"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-xs font-bold text-orange-400 mb-0.5" data-lang="form.ai_doc_kk">KK (PDF/JPG/PNG)</label>
+            <input type="file" accept=".pdf,image/*" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'kk')">
+            <div id="status_kk" class="text-[9px] text-emerald-400 mt-1 hidden font-bold whitespace-nowrap overflow-hidden text-ellipsis"></div>
+          </div>
+        </div>
+        <div class="bg-slate-900/60 border border-slate-700 p-3 rounded-lg shadow flex items-center gap-3">
+          <div class="w-10 h-10 rounded bg-violet-600 flex items-center justify-center text-white text-lg flex-shrink-0"><i class="fas fa-graduation-cap"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-xs font-bold text-violet-400 mb-0.5" data-lang="form.ai_doc_sd">IJAZAH SD (PDF)</label>
+            <input type="file" accept=".pdf" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'ijazahSd')">
+            <div id="status_ijazahSd" class="text-[9px] text-emerald-400 mt-1 hidden font-bold whitespace-nowrap overflow-hidden text-ellipsis"></div>
+          </div>
+        </div>
+        <div class="bg-slate-900/60 border border-slate-700 p-3 rounded-lg shadow flex items-center gap-3">
+          <div class="w-10 h-10 rounded bg-sky-600 flex items-center justify-center text-white text-lg flex-shrink-0"><i class="fas fa-graduation-cap"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-xs font-bold text-sky-400 mb-0.5" data-lang="form.ai_doc_smp">IJAZAH SMP (PDF)</label>
+            <input type="file" accept=".pdf" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'ijazahSmp')">
+            <div id="status_ijazahSmp" class="text-[9px] text-emerald-400 mt-1 hidden font-bold whitespace-nowrap overflow-hidden text-ellipsis"></div>
+          </div>
+        </div>
+        <div class="bg-slate-900/60 border border-slate-700 p-3 rounded-lg shadow flex items-center gap-3">
+          <div class="w-10 h-10 rounded bg-teal-600 flex items-center justify-center text-white text-lg flex-shrink-0"><i class="fas fa-graduation-cap"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-xs font-bold text-teal-400 mb-0.5" data-lang="form.ai_doc_sma">IJAZAH SMA (PDF)</label>
+            <input type="file" accept=".pdf" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'ijazahSma')">
+            <div id="status_ijazahSma" class="text-[9px] text-emerald-400 mt-1 hidden font-bold whitespace-nowrap overflow-hidden text-ellipsis"></div>
+          </div>
+        </div>
+        <div class="bg-slate-900/60 border border-slate-700 p-3 rounded-lg shadow flex items-center gap-3">
+          <div class="w-10 h-10 rounded bg-indigo-600 flex items-center justify-center text-white text-lg flex-shrink-0"><i class="fas fa-university"></i></div>
+          <div class="flex-1 overflow-hidden">
+            <label class="block text-xs font-bold text-indigo-400 mb-0.5" data-lang="form.ai_doc_univ">IJAZAH UNIVERSITAS (PDF)</label>
+            <input type="file" accept=".pdf" class="w-full text-[9px] text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-slate-800 file:text-white cursor-pointer" onchange="handleDocUpload(event, 'univ')">
+            <div id="status_univ" class="text-[9px] text-emerald-400 mt-1 hidden font-bold whitespace-nowrap overflow-hidden text-ellipsis"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<!--SCRIPTS_SHARED_START-->
+<script type="importmap">
+{
+  "imports": {
+    "@sentry/browser": "/js/core/sentry-dummy.js"
+  }
+}
+</script>
+    <!-- Fase 2: inline script utama dipindah ke js/pages/ai_form.js (isi byte-identik) -->
+  <script type="module" src="/js/pages/ai_form.js?v=esm14"></script>
+  <script type="module" src="/pwa.js?v=esm15"></script>
+<!--SCRIPTS_SHARED_END-->
+</body>
+</html>
+

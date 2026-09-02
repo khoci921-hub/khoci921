@@ -1,0 +1,135 @@
+import { supabaseJson, pick, toText, findTable } from './client';
+// db/jobs.js — repo lowongan (job_database/loker): mapJob, findJobs, lookup by kode.
+
+// Kolom asli tabel job_database (hasil introspeksi):
+//   code_job, tsk, kategori, pekerjaan, lokasi, gender, kuota, jumlah_kandidat,
+//   status, syarat, keterangan, tahapan, format_cv, link_pamflet,
+//   total_biaya, rincian_biaya, dokumen_share
+function mapJob(row) {
+  const pekerjaan = pick(row, [
+    'pekerjaan',
+    'nama_pekerjaan',
+    'judul',
+    'title',
+    'pekerjaan_loker',
+    'nama_loker',
+    'posisi',
+    'job',
+  ]);
+  const klien = pick(row, ['perusahaan', 'klien', 'company', 'client']);
+  const code = toText(
+    pick(row, ['code_job', 'code', 'kode', 'no_loker', 'id_loker', 'id_lowongan', 'id']),
+  );
+  const templateCv = pick(row, ['format_cv', 'template_cv', 'templatecv', 'cv_template']) || '';
+  return {
+    // id:0 + rowIndex=kode — persis perilaku backend asli (diverifikasi dari
+    // situs live asjportal.netlify.app).
+    id: 0,
+    code,
+    rowIndex: code,
+    pekerjaan: klien ? pekerjaan + ' - ' + klien : pekerjaan,
+    kategori: toText(pick(row, ['kategori', 'category', 'bidang', 'sektor'])),
+    // status & gender dikirim MENTAH (persis backend asli — frontend sudah
+    // menghandle nilai seperti "❌ CLOSE", "👨 Pria👩 Wanita").
+    status: toText(pick(row, ['status', 'state', 'is_open'])),
+    lokasi: toText(pick(row, ['lokasi', 'location', 'prefektur', 'kota', 'area'])),
+    gender: toText(pick(row, ['gender', 'jenis_kelamin', 'jk'])),
+    kuota: (() => {
+      const kv = pick(row, ['kuota', 'quota', 'jml_kuota']);
+      // Asli mengirim "" kalau kosong/0.
+      return kv == null || kv === '' || kv === 0 ? '' : toText(kv);
+    })(),
+    jumlahKandidat: Number(pick(row, ['jumlah_kandidat', 'jumlahKandidat'])) || 0,
+    syarat: toText(pick(row, ['syarat', 'persyaratan', 'requirements', 'requirement'])),
+    keterangan: toText(pick(row, ['keterangan', 'deskripsi', 'description', 'info_tambahan'])),
+    tahapan: toText(pick(row, ['tahapan', 'tahapan_seleksi'])),
+    tsk: toText(pick(row, ['tsk', 'pengurus'])),
+    dokumenShare: toText(pick(row, ['dokumen_share', 'dokumenshare', 'dokumen', 'docs_share'])),
+    template: templateCv,
+    templateCv,
+    pamflet: toText(pick(row, ['link_pamflet', 'pamflet', 'poster', 'flyer', 'brosur'])),
+    rincianBiaya: toText(pick(row, ['rincian_biaya', 'rincianbiaya', 'biaya_rincian', 'rincian'])),
+    totalBiaya: toText(pick(row, ['total_biaya', 'totalbiaya', 'total'])),
+    createdAt: toText(pick(row, ['created_at', 'createdat', 'tanggal', 'date_created', 'tgl'])),
+    _raw: row,
+  };
+}
+
+// Nama tabel asli (hasil introspeksi skema Supabase project):
+//   job_database (lowongan), database_candidate + master_database_candidate
+//   (kandidat), sys_config (konfigurasi/assets/pengumuman), database_tugas,
+//   database_schedule, wa_templates, ai_form_submissions, user_sessions, dll.
+async function findJobs() {
+  return findTable([
+    'job_database',
+    'jobs',
+    'lokers',
+    'loker',
+    'lowongan',
+    'job_listings',
+    'joblistings',
+    'tbl_jobs',
+    'data_loker',
+  ]);
+}
+
+// Ada kandidat yang masih terikat ke job code? (cek hapus loker) — server-side.
+async function countCandidatesForJob(code) {
+  try {
+    const rows = await supabaseJson('GET', 'database_candidate', {
+      query: { select: 'id', id_loker_pilihan: 'eq.' + String(code), limit: '1' },
+    });
+    return Array.isArray(rows) ? rows.length > 0 : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+// ===== Server-side targeted queries (lanjutan REVIEW.md S2) =====
+// Semua helper di bawah punya kontrak sama dengan findCandidateByWaFiltered:
+//  - baris/array ketemu → data
+//  - query jalan tapi tidak ada yang cocok → null / []
+//  - kolom/tabel tidak dikenal → undefined (caller fallback ke scan penuh)
+
+// Cari baris job per kode (code_job / code) — 1 baris, bukan scan semua loker.
+async function findJobByCodeFiltered(code) {
+  const want = String(code || '').trim();
+  if (!want) return undefined;
+  let anyOk = false;
+  for (const col of ['code_job', 'code']) {
+    try {
+      const rows = await supabaseJson('GET', 'job_database', {
+        query: { select: '*', limit: '1', [col]: 'eq.' + want },
+      });
+      anyOk = true;
+      if (Array.isArray(rows) && rows.length) return rows[0];
+    } catch {
+      /* kolom tidak ada — coba kolom berikutnya */
+    }
+  }
+  return anyOk ? null : undefined;
+}
+
+// Max nomor kode job TG###ASJ — server-side (desc, ambil 20 teratas).
+async function maxJobCodeNumber() {
+  try {
+    const rows = await supabaseJson('GET', 'job_database', {
+      query: { select: 'code_job', order: 'code_job.desc', limit: '20' },
+    });
+    if (!Array.isArray(rows) || rows.length === 0) return undefined;
+    let max = 0;
+    let found = false;
+    for (const r of rows) {
+      const m = String(r.code_job || r.code || '').match(/TG(\d+)ASJ/);
+      if (m) {
+        max = Math.max(max, parseInt(m[1], 10));
+        found = true;
+      }
+    }
+    return found ? max : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export { mapJob, findJobs, countCandidatesForJob, findJobByCodeFiltered, maxJobCodeNumber };

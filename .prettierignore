@@ -1,0 +1,10 @@
+# Artefak build / pihak ketiga — jangan diformat
+assets/
+vendor/
+node_modules/
+dist/
+
+# Halaman HTML + partial — byte-sensitive: region dibangun ulang dari partial
+# oleh build:html (Fase 5), jadi diformat ulang oleh prettier bisa mengubah
+# byte dan mematahkan idempotensi build. JS di dalamnya ditangani bundel.
+*.html

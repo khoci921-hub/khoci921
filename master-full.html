@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ASJ MASTER PROFIL</title>
+  <link rel="manifest" href="/manifest.webmanifest?v=8f163ba13c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#020617">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=b90abf8d0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ASJ Portal">
+  <!-- FIX 2026-08-12: Tailwind CDN (v3 JIT in-browser) diganti bundel Vite
+       (src/main.js -> main.css, Tailwind v4) supaya warning produksi hilang,
+       kelas konsisten dengan halaman lain, dan tidak ada JS runtime eksternal. -->
+<!--HEAD_SHARED_START-->
+  <link rel="stylesheet" href="/vendor/font-awesome/css/all.min.css?v=8230c4590e">
+  <link rel="stylesheet" href="/fonts/fonts.css?v=1dd324a9c7">
+  <!-- Preload font kritis (Montserrat, UI font) — href & url() di fonts.css memakai ?v yang sama. -->
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/montserrat-latin.woff2?v=9b1446d51c" crossorigin>
+<!--HEAD_SHARED_END-->
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}
+    body{background:#020617;color:#fff;padding-bottom:90px}
+    .hero{height:220px;position:relative;overflow:hidden}
+    .bg-hero{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.35)}
+    .overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.25),#020617)}
+    .header{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;width:100%;z-index:10}
+    .logo{width:80px;height:80px;border-radius:50%;margin:auto;box-shadow:0 10px 25px rgba(0,0,0,.5)}
+    .title{font-size:24px;font-weight:900;margin-top:10px;text-transform:uppercase;color:#38bdf8}
+    .sub{font-size:11px;margin-top:5px;color:#cbd5e1;letter-spacing:2px}
+    .container{max-width:600px;margin:auto;padding:15px;margin-top:-30px;position:relative;z-index:20}
+    .glass{background:rgba(15,23,42,.95);border:1px solid #1e293b;border-radius:24px;padding:25px;box-shadow:0 25px 50px rgba(0,0,0,.5)}
+    .stepper{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;position:relative}
+    .stepper::before{content:'';position:absolute;top:15px;left:10%;right:10%;height:2px;background:#334155;z-index:1}
+    .step{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:5px;width:20%}
+    .circle{width:32px;height:32px;border-radius:50%;background:#1e293b;border:2px solid #334155;display:flex;justify-content:center;align-items:center;font-size:12px;font-weight:800;color:#64748b;transition:.3s}
+    .step-text{font-size:9px;font-weight:800;color:#64748b;text-align:center;transition:.3s}
+    .step.active .circle{background:#38bdf8;border-color:#38bdf8;color:#020617;box-shadow:0 0 15px rgba(56,189,248,.4)}
+    .step.active .step-text{color:#38bdf8}
+    .step.completed .circle{background:#0284c7;border-color:#0284c7;color:#fff}
+    .step-content{display:none;animation:fadeIn .4s ease}
+    .step-content.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .section-title{font-size:13px;font-weight:800;color:#38bdf8;margin:20px 0 10px 0;border-bottom:1px solid #1e293b;padding-bottom:5px;text-transform:uppercase;letter-spacing:1px}
+    .form-group{margin-bottom:15px}
+    .label{display:block;font-size:11px;font-weight:800;margin-bottom:6px;color:#cbd5e1;text-transform:uppercase}
+    .input{width:100%;padding:12px 15px;background:#020617;border:1px solid #334155;border-radius:12px;color:white;font-size:13px;transition:.2s}
+    .input:focus{outline:none;border-color:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+    .input:disabled{background:#0f172a;opacity:0.5;cursor:not-allowed;}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .dynamic-box{background:#0f172a;border:1px dashed #334155;padding:15px;border-radius:12px;margin-bottom:10px}
+    .box-title{font-size:10px;color:#94a3b8;font-weight:800;margin-bottom:10px}
+    .nav-bar{position:fixed;bottom:0;left:0;width:100%;background:rgba(2,6,23,.95);border-top:1px solid #1e293b;padding:15px 20px;z-index:50;display:flex;justify-content:space-between;gap:15px}
+    .btn{flex:1;padding:15px;border-radius:14px;font-size:13px;font-weight:800;text-align:center;transition:.3s;cursor:pointer;border:none}
+    .btn-prev{background:#1e293b;color:#cbd5e1}
+    .btn-next{background:#38bdf8;color:#020617;box-shadow:0 5px 15px rgba(56,189,248,.3)}
+    .file-card{background:#0f172a;border:1px solid #334155;border-radius:16px;padding:15px;margin-bottom:15px;display:flex;justify-content:space-between;align-items:center}
+    .file-btn{background:#38bdf8;color:#020617;padding:8px 15px;border-radius:8px;font-weight:800;font-size:11px;cursor:pointer}
+    .file-info{font-size:10px;color:#94a3b8;margin-top:5px;word-break:break-all}
+  </style>
+  <link rel="stylesheet" crossorigin href="/assets/main.css?v=ed681b7b61">
+</head>
+<body data-page="master-full">
+<!--THEME_INIT_START-->
+<script>try{var _t=localStorage.getItem('asj_theme');document.body.classList.add(_t==='SAKURA'?'theme-light':'theme-dark')}catch(e){document.body.classList.add('theme-dark')}</script>
+<!--THEME_INIT_END-->
+  <!-- BACK TO PORTAL -->
+  <a href="/" class="fixed top-4 left-4 z-[100] flex items-center gap-2 px-4 py-2 bg-black/70 hover:bg-black/90 text-white text-xs font-bold rounded-full border border-white/20 backdrop-blur-sm transition-all shadow-lg hover:scale-105" aria-label="Kembali ke Portal">
+    <i class="fas fa-arrow-left"></i>
+    <span class="hidden sm:inline">Portal</span>
+  </a>
+  <!-- Skip link: lompat langsung ke konten utama (WCAG 2.4.1) -->
+  <a href="#main-content" class="skip-link" data-lang="a11y.skip_to_content">Lewati ke konten utama</a>
+  <div id="loading" aria-live="polite" class="hidden fixed inset-0 bg-slate-950/90 z-[999] flex flex-col items-center justify-center text-white">
+      <i class="fas fa-spinner fa-spin text-5xl text-sky-500 mb-4"></i>
+      <h2 class="text-xl font-bold" id="loadingText">Menyinkronkan Data…</h2>
+  </div>
+
+  <div class="hero">
+    <img class="bg-hero" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1600&q=80" alt="">
+    <div class="overlay"></div>
+    <div class="header">
+      <img class="logo" src="/assets/logo.png?v=5d2cdd9479" alt="Logo ASJ">
+      <div class="title">ASJ DOSSIER</div>
+      <div class="sub">MASTER DATABASE SYSTEM</div>
+    </div>
+    <button onclick="toggleFormLanguage()" class="absolute top-3 right-3 z-10 px-3 py-1.5 bg-sky-600/80 hover:bg-sky-500 text-white rounded-full text-[11px] font-bold shadow-lg border border-sky-400/40 transition"><i class="fas fa-language mr-1"></i><span id="lang-btn-mf">JP</span></button>
+  </div>
+
+  <main id="main-content" tabindex="-1" class="container">
+    <div class="glass">
+      
+      <!-- STEPPER -->
+      <div class="stepper">
+        <div class="step active" id="ind-1"><div class="circle"><i class="fas fa-user"></i></div><div class="step-text">Data Diri</div></div>
+        <div class="step" id="ind-2"><div class="circle"><i class="fas fa-heartbeat"></i></div><div class="step-text">Medis & Wawancara</div></div>
+        <div class="step" id="ind-3"><div class="circle"><i class="fas fa-briefcase"></i></div><div class="step-text">Riwayat</div></div>
+        <div class="step" id="ind-4"><div class="circle"><i class="fas fa-users"></i></div><div class="step-text">Keluarga</div></div>
+        <div class="step" id="ind-5"><div class="circle"><i class="fas fa-file-alt"></i></div><div class="step-text">Dokumen</div></div>
+      </div>
+
+      <!-- STEP 1: IDENTITAS -->
+      <div id="step-1" class="step-content active">
+        <div class="bg-sky-900/20 border border-sky-500/30 p-3 rounded-xl mb-4 text-xs text-sky-400 font-bold">
+            <i class="fas fa-info-circle mr-1"></i> Form terhubung ke WA: <span id="wa-display"></span>
+        </div>
+        <input type="hidden" id="wa" aria-label="Nomor WhatsApp" value="">
+
+        <div class="section-title" data-lang="form.mf_identitas">Identitas Dasar</div>
+        <div class="form-group"><label class="label" data-lang="form.mf_nama">Nama Lengkap (KTP)</label><input id="nama" aria-label="Nama Lengkap" class="input" value=""></div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_furigana">Furigana (Katakana)</label><input id="furigana" aria-label="Furigana" class="input" placeholder="Teks Jepang" data-lang-placeholder="form.mf_ph_teks_jepang"></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_panggilan">Nama Panggilan</label><input id="panggilan" class="input"></div>
+        </div>
+        <div class="form-group"><label class="label" data-lang="form.mf_panggilan_ktk">Panggilan (Katakana)</label><input id="panggilanKatakana" class="input" placeholder="Teks Jepang" data-lang-placeholder="form.mf_ph_teks_jepang"></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_tempat_lahir">Tempat Lahir</label><input id="tempatLahir" class="input" placeholder="Otomatis diterjemahkan ke Jepang saat disimpan" data-lang-placeholder="form.mf_ph_auto_jp"></div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_tgl_lahir">Tgl Lahir</label><input id="tglLahir" aria-label="Tanggal Lahir" type="date" class="input"></div>
+        </div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_gender">Gender</label><select id="gender" aria-label="Gender" class="input"><option value="LAKI-LAKI" data-lang="candidate.gender_l">LAKI-LAKI</option><option value="PEREMPUAN" data-lang="candidate.gender_p">PEREMPUAN</option></select></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_usia">Usia</label><input id="usia" type="number" class="input"></div>
+        </div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_agama">Agama</label><select id="agama" class="input"><option value="ISLAM" data-lang="candidate.agama_islam">ISLAM</option><option value="KRISTEN" data-lang="candidate.agama_kristen">KRISTEN</option><option value="HINDU" data-lang="candidate.agama_hindu">HINDU</option><option value="BUDHA" data-lang="candidate.agama_budha">BUDHA</option><option value="KATHOLIK" data-lang="candidate.agama_katholik">KATHOLIK</option></select></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_status_nikah">Status Nikah</label><select id="statusNikah" class="input"><option value="BELUM MENIKAH" data-lang="candidate.nikah_belum">BELUM MENIKAH</option><option value="MENIKAH" data-lang="candidate.nikah_menikah">MENIKAH</option><option value="CERAI" data-lang="candidate.nikah_cerai">CERAI</option></select></div>
+        </div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_anak">Jumlah Anak</label><input id="anak" type="number" class="input" placeholder="0 jika tidak ada" data-lang-placeholder="form.mf_ph_0_jika"></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_ktp">KTP (NIK)</label><input id="ktp" type="number" class="input"></div>
+        </div>
+        <div class="form-group"><label class="label" data-lang="form.mf_sim">SIM</label><input id="sim" class="input" placeholder="A / C / A & C (Kosongkan jika tidak ada)" data-lang-placeholder="form.mf_ph_sim"></div>
+
+        <div class="section-title" data-lang="form.mf_kontak">Kontak & Fisik</div>
+        <div class="form-group"><label class="label" data-lang="form.mf_alamat">Alamat Lengkap</label><textarea id="alamat" aria-label="Alamat Lengkap" rows="2" class="input" placeholder="Otomatis diterjemahkan ke Jepang saat disimpan" data-lang-placeholder="form.mf_ph_auto_jp"></textarea></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_email">Email Aktif</label><input id="email" aria-label="Email" type="email" class="input"></div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_tb">Tinggi (CM)</label><input id="tb" type="number" class="input"></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_bb">Berat (KG)</label><input id="bb" type="number" class="input"></div>
+        </div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_goldar">Gol. Darah</label><select id="goldar" class="input"><option value="-">Pilih</option><option value="A">A</option><option value="B">B</option><option value="AB">AB</option><option value="O">O</option></select></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_tangan">Tangan Dominan</label><select id="tangan" class="input"><option value="KANAN">KANAN</option><option value="KIRI">KIRI</option></select></div>
+        </div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_baju">Ukuran Baju</label><input id="baju" class="input" placeholder="S/M/L/XL" data-lang-placeholder="form.mf_ph_baju"></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_sepatu">Ukuran Sepatu (CM)</label><input id="sepatu" type="number" class="input"></div>
+        </div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_topi">Ukuran Topi (S/M/L)</label><input id="topi" class="input"></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_tahan_ac">Tahan Kerja Tanpa AC?</label><select id="tahanAc" class="input"><option value="YA">YA</option><option value="TIDAK">TIDAK</option></select></div>
+        </div>
+      </div>
+
+      <!-- STEP 2: MEDIS & PERSONALITI -->
+      <div id="step-2" class="step-content">
+        <div class="section-title" data-lang="form.mf_medis_title">Catatan Medis</div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_mata_kiri">Mata Kiri (Visus)</label><input id="mataKiri" class="input" placeholder="Normal / Minus 1" data-lang-placeholder="form.mf_ph_visus"></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_mata_kanan">Mata Kanan (Visus)</label><input id="mataKanan" class="input" placeholder="Normal / Minus 1" data-lang-placeholder="form.mf_ph_visus"></div>
+        </div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_kacamata">Berkacamata?</label><select id="kacamata" class="input"><option value="TIDAK">TIDAK</option><option value="YA">YA</option></select></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_buta_warna">Buta Warna?</label><select id="butaWarna" class="input"><option value="TIDAK">TIDAK</option><option value="YA">YA</option></select></div>
+        </div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_tato">Bertato?</label><select id="tato" class="input"><option value="TIDAK">TIDAK</option><option value="YA">YA</option></select></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_tindik">Bertindik?</label><select id="tindik" class="input"><option value="TIDAK">TIDAK</option><option value="YA">YA</option></select></div>
+        </div>
+        <div class="form-group"><label class="label" data-lang="form.mf_merokok">Merokok?</label><select id="merokok" class="input"><option value="TIDAK">TIDAK</option><option value="YA">YA</option></select></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_alkohol">Minum Alkohol?</label><select id="alkohol" class="input"><option value="TIDAK">TIDAK</option><option value="YA">YA</option></select></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_penyakit">Riwayat Penyakit Berat (Jujur)</label><textarea id="penyakit" rows="2" class="input" placeholder="Deskripsikan jika ada…" data-lang-placeholder="form.mf_ph_deskripsi"></textarea></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_alergi">Riwayat Alergi</label><textarea id="alergi" rows="2" class="input" placeholder="Deskripsikan alergi obat/makanan jika ada…" data-lang-placeholder="form.mf_ph_alergi"></textarea></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_laka">Riwayat Kecelakaan / Operasi</label><textarea id="laka" rows="2" class="input" placeholder="Deskripsikan jika ada…" data-lang-placeholder="form.mf_ph_deskripsi"></textarea></div>
+
+        <div class="section-title" data-lang="form.mf_wawancara">Wawancara & Jiko PR (CV)</div>
+        <div class="form-group"><label class="label" data-lang="form.mf_promosi">Jiko PR (Promosi Diri)</label><textarea id="promosi" rows="3" class="input" placeholder="Tuliskan kelebihan dan dedikasi Anda agar perusahaan Jepang tertarik." data-lang-placeholder="form.mf_ph_promosi"></textarea></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_kelebihan">Kelebihan Sifat</label><input id="kelebihan" class="input" placeholder="Disiplin, Pekerja Keras, dll" data-lang-placeholder="form.mf_ph_kelebihan"></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_kekurangan">Kekurangan Sifat (Beserta Solusi)</label><input id="kekurangan" class="input" placeholder="Pelupa (Tapi saya selalu mencatat), dll" data-lang-placeholder="form.mf_ph_kekurangan"></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_keahlian">Keahlian Khusus / Lisensi</label><input id="keahlianKhusus" class="input" placeholder="Mengelas, Alat Berat, dll (Kosongkan jika tidak ada)" data-lang-placeholder="form.mf_ph_keahlian"></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_hobi">Hobi & Minat</label><input id="hobi" class="input" placeholder="Memancing, Olahraga, dll (Otomatis diterjemahkan ke Jepang)" data-lang-placeholder="form.mf_ph_hobi"></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_alasan_bidang">Alasan Memilih Bidang Kerja Ini</label><textarea id="alasanBidang" rows="2" class="input"></textarea></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_motivasi">Motivasi Ke Jepang</label><textarea id="motivasiJepang" rows="2" class="input"></textarea></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_keinginan">Keinginan Pribadi (Target)</label><textarea id="keinginan" rows="2" class="input"></textarea></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_rencana_pulang">Rencana Setelah Pulang</label><textarea id="rencanaPulang" rows="2" class="input"></textarea></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_tujuan_jepang">Tujuan Kerja di Jepang</label><input id="tujuanJepang" class="input"></div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_lama_jepang">Rencana Lama di Jepang (Thn)</label><input id="lamaJepang" type="number" class="input" placeholder="Misal: 3" data-lang-placeholder="form.mf_ph_misal3"></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_gaji_yen">Harapan Gaji (Yen)</label><input id="gajiYen" type="number" class="input" placeholder="Misal: 200000" data-lang-placeholder="form.mf_ph_misal_gaji"></div>
+        </div>
+        <div class="form-group"><label class="label" data-lang="form.mf_tabungan">Target Tabungan (Rp/Yen)</label><input id="tabungan" class="input" placeholder="Misal: 300 Juta" data-lang-placeholder="form.mf_ph_misal_tabungan"></div>
+      </div>
+
+      <!-- STEP 3: RIWAYAT BULAN & TAHUN -->
+      <div id="step-3" class="step-content">
+        <div class="section-title" data-lang="form.mf_riwayat_pendidikan">Riwayat Pendidikan (Maks 5)</div>
+        <div id="edu-container"></div>
+        <div class="section-title mt-6" data-lang="form.mf_riwayat_pekerjaan">Riwayat Pekerjaan (Maks 3)</div>
+        <div id="job-container"></div>
+      </div>
+
+      <!-- STEP 4: KELUARGA & KONTAK -->
+      <div id="step-4" class="step-content">
+        <div class="section-title" data-lang="form.mf_keluarga_maks">Anggota Keluarga (Maks 5)</div>
+        <div id="fam-container"></div>
+        
+        <div class="section-title mt-6" data-lang="form.mf_darurat">Kontak Darurat (Wajib)</div>
+        <div class="dynamic-box border-sky-500/50">
+            <div class="form-group"><label class="label" data-lang="form.mf_darurat_nama">Nama Kontak Darurat</label><input id="daruratNama" class="input py-2"></div>
+            <div class="row">
+                <div class="form-group"><label class="label" data-lang="form.mf_hubungan">Hubungan</label><input id="daruratHubungan" class="input py-2" placeholder="Istri / Orang Tua" data-lang-placeholder="form.mf_ph_istri_ortu"></div>
+                <div class="form-group"><label class="label" data-lang="form.mf_darurat_wa">No. WA Darurat</label><input id="daruratWa" type="number" class="input py-2"></div>
+            </div>
+        </div>
+
+        <div class="section-title mt-6" data-lang="form.mf_kenalan">Kenalan di Jepang</div>
+        <div class="dynamic-box">
+            <div class="row">
+                <div class="form-group"><label class="label" data-lang="form.mf_kenalan_nama">Nama Kenalan</label><input id="kenalanNama" class="input py-2" placeholder="Kosongkan jika tidak ada (Otomatis ke katakana)" data-lang-placeholder="form.mf_ph_kenalan"></div>
+                <div class="form-group"><label class="label" data-lang="form.mf_kenalan_usia">Usia</label><input id="kenalanUsia" type="number" class="input py-2" placeholder="Misal: 30" data-lang-placeholder="form.mf_ph_misal30"></div>
+            </div>
+            <div class="row">
+                <div class="form-group"><label class="label" data-lang="form.mf_kenalan_hubungan">Hubungan</label><input id="kenalanHubungan" class="input py-2" placeholder="Teman / Saudara" data-lang-placeholder="form.mf_ph_teman"></div>
+                <div class="form-group"><label class="label" data-lang="form.mf_kenalan_pekerjaan">Pekerjaan</label><input id="kenalanPekerjaan" class="input py-2" placeholder="Karyawan / Mahasiswa" data-lang-placeholder="form.mf_ph_karyawan"></div>
+            </div>
+            <div class="form-group"><label class="label" data-lang="form.mf_kenalan_alamat">Alamat di Jepang</label><input id="kenalanAlamat" class="input py-2" placeholder="Kota / Prefektur (Otomatis diterjemahkan)" data-lang-placeholder="form.mf_ph_kota"></div>
+        </div>
+      </div>
+
+      <!-- STEP 5: DOKUMEN -->
+      <div id="step-5" class="step-content">
+        <div class="section-title" data-lang="form.mf_status_paspor">Status & Paspor</div>
+        <div class="form-group"><label class="label" data-lang="form.mf_eks_jepang">Status Eks Jepang</label><select id="eksJepang" class="input"><option value="BELUM PERNAH">BELUM PERNAH</option><option value="EKS MAGANG">EKS MAGANG</option><option value="EKS TOKUTEI GINO">EKS TOKUTEI GINO</option></select></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_no_coe">No. COE (Bagi Eks Jepang)</label><input id="noCoe" class="input" placeholder="Kosongkan jika tidak ada" data-lang-placeholder="form.mf_ph_kosongkan"></div>
+        
+        <div class="form-group mt-4"><label class="label" data-lang="form.mf_no_paspor">No. Paspor</label><input id="noPaspor" class="input" placeholder="Kosongkan jika belum punya" data-lang-placeholder="form.mf_ph_belum_punya"></div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_tgl_terbit">Tgl Terbit</label><input id="tglTerbitPaspor" type="date" class="input"></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_exp">Tgl Expired</label><input id="expPaspor" type="date" class="input"></div>
+        </div>
+        <div class="form-group"><label class="label" data-lang="form.mf_kota_paspor">Kota Penerbitan</label><input id="kotaPaspor" class="input" placeholder="Misal: SURABAYA" data-lang-placeholder="form.mf_ph_surabaya"></div>
+
+        <div class="section-title mt-6" data-lang="form.mf_sertifikasi">Sertifikasi & Bahasa (資格・言語)</div>
+        <div class="row">
+            <div class="form-group"><label class="label" data-lang="form.mf_bhs_jepang">Sertifikat Bahasa Jepang (日本語能力)</label><select id="bhsJepang" class="input"><option value="-">Pilih / 選択</option><option value="N1">N1</option><option value="N2">N2</option><option value="N3">N3</option><option value="N4">N4</option><option value="N5">N5</option><option value="JFT BASIC A2">JFT BASIC A2</option><option value="BELUM LULUS">BELUM LULUS</option><option value="BELUM TES">BELUM TES</option></select></div>
+            <div class="form-group"><label class="label" data-lang="form.mf_nilai">Nilai / Skor Ujian (点数)</label><input id="nilai" class="input" placeholder="Misal: 120/180" data-lang-placeholder="form.mf_ph_nilai"></div>
+        </div>
+        <div class="form-group"><label class="label" data-lang="form.mf_lisensi">Sertifikat Lisensi / SSW 1 (特定技能)</label><select id="lisensi" class="input" onchange="onSswSelect('lisensi')"></select><input id="lisensi_manual" class="input hidden" placeholder="Ketik bidang SSW lain / その他の職種を入力" data-lang-placeholder="form.mf_ph_jabatan_lain"></div>
+        <div class="form-group"><label class="label" data-lang="form.mf_ssw2">SSW 2 — Opsional (特定技能2)</label><select id="lisensi2" class="input" onchange="onSswSelect('lisensi2')"></select><input id="lisensi2_manual" class="input hidden" placeholder="Ketik bidang SSW lain / その他の職種を入力" data-lang-placeholder="form.mf_ph_jabatan_lain"></div>
+
+        <div class="section-title mt-6" data-lang="form.mf_upload">Upload Dokumen (MAX 2MB)</div>
+        <div class="file-card">
+            <div>
+                <div class="text-xs font-bold text-white" data-lang="form.mf_photo">PAS PHOTO (JPG/PNG)</div>
+                <div id="photoInfo" aria-live="polite" class="file-info" data-lang="form.mf_belum_file">Belum ada file</div>
+            </div>
+            <button onclick="document.getElementById('photo').click()" class="file-btn" data-lang="form.mf_pilih">PILIH</button>
+            <input type="file" id="photo" accept=".jpg,.jpeg,.png" class="hidden" onchange="handleFile(this, 'photoInfo')">
+        </div>
+        <div class="file-card">
+            <div>
+                <div class="text-xs font-bold text-white" data-lang="form.mf_jft_file">SERTIFIKAT JFT (PDF)</div>
+                <div id="jftInfo" aria-live="polite" class="file-info" data-lang="form.mf_belum_file">Belum ada file</div>
+            </div>
+            <button onclick="document.getElementById('jft').click()" class="file-btn" data-lang="form.mf_pilih">PILIH</button>
+            <input type="file" id="jft" accept=".pdf" class="hidden" onchange="handleFile(this, 'jftInfo')">
+        </div>
+        <div class="file-card">
+            <div>
+                <div class="text-xs font-bold text-white" data-lang="form.mf_ssw_file">SERTIFIKAT SSW (PDF)</div>
+                <div id="sswInfo" aria-live="polite" class="file-info" data-lang="form.mf_belum_file">Belum ada file</div>
+            </div>
+            <button onclick="document.getElementById('ssw').click()" class="file-btn" data-lang="form.mf_pilih">PILIH</button>
+            <input type="file" id="ssw" accept=".pdf" class="hidden" onchange="handleFile(this, 'sswInfo')">
+        </div>
+        <div class="file-card">
+            <div>
+                <div class="text-xs font-bold text-white" data-lang="form.mf_ijazah_sd_file">IJAZAH SD (PDF)</div>
+                <div id="ijazahSdInfo" aria-live="polite" class="file-info" data-lang="form.mf_belum_file">Belum ada file</div>
+            </div>
+            <button onclick="document.getElementById('ijazahSd').click()" class="file-btn" data-lang="form.mf_pilih">PILIH</button>
+            <input type="file" id="ijazahSd" accept=".pdf" class="hidden" onchange="handleFile(this, 'ijazahSdInfo')">
+        </div>
+        <div class="file-card">
+            <div>
+                <div class="text-xs font-bold text-white" data-lang="form.mf_ijazah_smp_file">IJAZAH SMP (PDF)</div>
+                <div id="ijazahSmpInfo" aria-live="polite" class="file-info" data-lang="form.mf_belum_file">Belum ada file</div>
+            </div>
+            <button onclick="document.getElementById('ijazahSmp').click()" class="file-btn" data-lang="form.mf_pilih">PILIH</button>
+            <input type="file" id="ijazahSmp" accept=".pdf" class="hidden" onchange="handleFile(this, 'ijazahSmpInfo')">
+        </div>
+        <div class="file-card">
+            <div>
+                <div class="text-xs font-bold text-white" data-lang="form.mf_ijazah_sma_file">IJAZAH SMA (PDF)</div>
+                <div id="ijazahSmaInfo" aria-live="polite" class="file-info" data-lang="form.mf_belum_file">Belum ada file</div>
+            </div>
+            <button onclick="document.getElementById('ijazahSma').click()" class="file-btn" data-lang="form.mf_pilih">PILIH</button>
+            <input type="file" id="ijazahSma" accept=".pdf" class="hidden" onchange="handleFile(this, 'ijazahSmaInfo')">
+        </div>
+        <div class="file-card">
+            <div>
+                <div class="text-xs font-bold text-white" data-lang="form.mf_univ_file">IJAZAH UNIVERSITAS (PDF)</div>
+                <div id="univInfo" aria-live="polite" class="file-info" data-lang="form.mf_belum_file">Belum ada file</div>
+            </div>
+            <button onclick="document.getElementById('univ').click()" class="file-btn" data-lang="form.mf_pilih">PILIH</button>
+            <input type="file" id="univ" accept=".pdf" class="hidden" onchange="handleFile(this, 'univInfo')">
+        </div>
+        <div class="file-card">
+            <div>
+                <div class="text-xs font-bold text-white" data-lang="form.mf_ktp_file">KTP (PDF)</div>
+                <div id="ktpInfo" aria-live="polite" class="file-info" data-lang="form.mf_belum_file">Belum ada file</div>
+            </div>
+            <button onclick="document.getElementById('ktpFile').click()" class="file-btn" data-lang="form.mf_pilih">PILIH</button>
+            <input type="file" id="ktpFile" accept=".pdf" class="hidden" onchange="handleFile(this, 'ktpInfo')">
+        </div>
+        <div class="file-card">
+            <div>
+                <div class="text-xs font-bold text-white" data-lang="form.mf_kk_file">KK (PDF)</div>
+                <div id="kkInfo" aria-live="polite" class="file-info" data-lang="form.mf_belum_file">Belum ada file</div>
+            </div>
+            <button onclick="document.getElementById('kk').click()" class="file-btn" data-lang="form.mf_pilih">PILIH</button>
+            <input type="file" id="kk" accept=".pdf" class="hidden" onchange="handleFile(this, 'kkInfo')">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <button id="btnPrev" aria-label="Sebelumnya" class="btn btn-prev" onclick="changeStep(-1)" style="display:none;"><i class="fas fa-arrow-left mr-1"></i> <span data-lang="form.mf_kembali">Kembali</span></button>
+    <button onclick="submitMaster(true)" class="btn bg-amber-600 text-white ml-2"><i class="fas fa-save mr-1"></i> <span data-lang="form.mf_draft">Draft</span></button>
+    <button id="btnNext" aria-label="Berikutnya" class="btn btn-next" onclick="changeStep(1)"><span data-lang="form.mf_lanjut">Lanjut</span> <i class="fas fa-arrow-right ml-1"></i></button>
+    <button id="btnSubmit" class="btn btn-next bg-emerald-500 hidden" onclick="submitMaster(false)"><i class="fas fa-check mr-1"></i> <span data-lang="form.mf_simpan_final">Simpan Final</span></button>
+  </div>
+
+  <!-- Login gate: form terhubung ke akun kandidat (nomor WA dari URL/QR saja
+       tidak cukup untuk membaca/mengubah data - wajib password + session server) -->
+  <div id="login-gate" class="hidden fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
+    <div class="bg-[#0b1220] border border-sky-500/30 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+      <div class="text-center mb-4">
+        <div class="text-2xl mb-1"><i class="fas fa-lock text-sky-400"></i></div>
+        <div class="font-bold text-white text-sm" data-lang="form.mf_gate_title">Verifikasi Akun Kandidat</div>
+        <div class="text-slate-400 text-xs mt-1"><span data-lang="form.mf_wa">Form terhubung ke WA</span> <span id="gate-wa" class="text-sky-400 font-bold"></span></div>
+        <div class="text-slate-500 text-[11px] mt-1" data-lang="form.mf_gate_desc">Masukkan password akun kandidat Anda untuk mengisi / memperbarui data.</div>
+      </div>
+      <label for="gate-pass" class="label" data-lang="form.mf_password">Password kandidat</label>
+      <input id="gate-pass" aria-label="Password" type="password" class="input" placeholder="Password kandidat" data-lang-placeholder="form.mf_ph_gate" onkeydown="if(event.key==='Enter') gateLogin()">
+      <button id="gate-btn" onclick="gateLogin()" class="w-full mt-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl py-2.5 text-sm font-bold" data-lang="form.mf_masuk">Masuk</button>
+      <div id="gate-msg" class="text-rose-400 text-xs text-center mt-2 min-h-4"></div>
+    </div>
+  </div>
+
+  <!-- Fase 3.5 L6: js/pages/master_full.js = entry ESM — meng-import core sendiri
+       lewat bridge.js (i18n + api-client), jadi tag core terpisah tidak perlu lagi -->
+<!--SCRIPTS_SHARED_START-->
+<script type="importmap">
+{
+  "imports": {
+    "@sentry/browser": "/js/core/sentry-dummy.js"
+  }
+}
+</script>
+  <script type="module" src="/js/upload-guard.js?v=esm13"></script>
+    <!-- Fase 2: inline script utama dipindah ke js/pages/master_full.js (isi byte-identik) -->
+  <script type="module" src="/js/pages/master_full.js?v=esm14"></script>
+  <script type="module" src="/pwa.js?v=esm15"></script>
+<!--SCRIPTS_SHARED_END-->
+</body>
+</html>

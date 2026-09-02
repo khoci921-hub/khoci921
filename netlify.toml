@@ -1,0 +1,62 @@
+[build]
+publish = "."
+functions = ".netlify/functions"
+command = "bash scripts/build-netlify-functions.sh"
+node_bundler = "esbuild"
+
+[dev]
+functions = "netlify/functions"
+
+[[redirects]]
+from = "/api/*"
+to = "/.netlify/functions/:splat"
+status = 200
+force = false
+
+# --- Security headers ---
+# HSTS: paksa HTTPS selama 6 bulan (preload hanya jika domain sudah di
+# hstspreload.org). includeSubdomains mencakup *.asjportal.netlify.app.
+[[headers]]
+for = "/*"
+[headers.values]
+Strict-Transport-Security = "max-age=15552000; includeSubDomains"
+X-Content-Type-Options = "nosniff"
+Referrer-Policy = "strict-origin-when-cross-origin"
+Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# X-Frame-Options: jangan gunakan — sudah deprecated dan konflik dengan
+# frame-ancestors CSP. Gunakan CSP frame-ancestors saja (lihat bawah).
+
+# CSP: longgar untuk PWA + Supabase Storage embed + Cloudinary + Google Fonts
+# + Font Awesome + QR lib. Kunci: default-src 'self' + inline scripts/styles
+# diperlukan karena HTML gabungan (SHARED_MODALS). Nonce-based CSP sulit
+# dijalankan karena modals-shared.html di-load sebagai partial + inline.
+[[headers]]
+for = "/*.html"
+[headers.values]
+Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://gdwvffmevwtwnzrapjwy.supabase.co https://*.cloudinary.com; connect-src 'self' https://gdwvffmevwtwnzrapjwy.supabase.co wss://*.supabase.co https://api.cloudinary.com; frame-src https://*.supabase.co https://res.cloudinary.com; frame-ancestors 'self'"
+
+# --- Cache policy PWA: SELALU versi terbaru ---
+# sw.js & HTML: no-cache (revalidasi tiap load) supaya update service worker
+# dan bundel baru langsung terdeteksi browser — versi lama tidak menempel.
+# Aset ber-hash (/assets/app-<hash>.js): URL-nya unik per konten, jadi aman
+# di-cache selamanya (update = URL baru, browser otomatis ambil yang baru).
+[[headers]]
+for = "/sw.js"
+[headers.values]
+Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+for = "/*.html"
+[headers.values]
+Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+for = "/assets/modals-shared.html"
+[headers.values]
+Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+for = "/assets/app-*.js"
+[headers.values]
+Cache-Control = "public, max-age=31536000, immutable"

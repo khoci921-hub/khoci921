@@ -1,0 +1,49 @@
+# =============================================================================
+# Netlify _headers — Cegah HTTP cache menahan file versi lama
+# =============================================================================
+# Source: web.dev/articles/service-worker-caching-and-http-caching
+# "Use Cache-Control: no-cache on your service worker script to prevent
+#  HTTP caching from interfering with the update flow."
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/admin.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/ai_form.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/apply-full.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/master-full.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/share.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/siswa-baru.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/manifest.webmanifest
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Aset ber-hash (JS/CSS) BOLEH di-cache lama — hash unik menjamin versi benar
+/assets/app-*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/main.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/jp-locale.js
+  Cache-Control: public, max-age=3600
+
+# API & dynamic: selalu fresh
+/.netlify/*
+  Cache-Control: no-cache, no-store

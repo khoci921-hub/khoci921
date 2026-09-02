@@ -1,0 +1,101 @@
+name: 🐛 Bug Report
+description: Laporkan bug atau masalah yang ditemukan
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug Report
+        Terima kasih telah melaporkan bug! Mohon isi informasi di bawah.
+
+  - type: input
+    id: page
+    attributes:
+      label: Halaman/URL
+      description: Halaman mana yang mengalami bug?
+      placeholder: 'admin.html, index.html, master-full.html, dll'
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Deskripsi Bug
+      description: Jelaskan bug yang terjadi
+      placeholder: 'Ketika saya klik tombol X, terjadi Y...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Perilaku yang Diharapkan
+      description: Apa yang seharusnya terjadi?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Perilaku Aktual
+      description: Apa yang sebenarnya terjadi?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Seberapa parah bug ini?
+      options:
+        - Low (cosmetic,不影响 workflow)
+        - Medium (mengganggu tapi ada workaround)
+        - High (memblokir workflow utama)
+        - Critical ( aplikasi crash / data hilang)
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Langkah-langkah untuk mereproduksi bug
+      placeholder: |
+        1. Buka halaman admin.html
+        2. Login dengan PIN master
+        3. Klik tab "Mail"
+        4. Error muncul...
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Screenshot jika memungkinkan (drag & drop)
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device/Browser
+      description: Device dan browser yang dipakai
+      options:
+        - Desktop Chrome
+        - Desktop Firefox
+        - Desktop Safari
+        - Mobile Chrome
+        - Mobile Safari
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS
+      description: Operating system
+      placeholder: 'Windows 11, macOS Sonoma, dll'
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Console Errors
+      description: Error di browser console (F12 → Console)

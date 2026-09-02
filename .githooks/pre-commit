@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# =============================================================================
+# pre-commit — jaga format & syntax tetap seragam (team pakai desktop/HP/local).
+# -----------------------------------------------------------------------------
+# Aktifkan sekali per clone:  bun run hook:install   (atau `bun install` —
+# script `prepare` di package.json otomatis menjalankannya).
+# File hook ini DI-COMMIT (bukan .git/hooks) supaya semua anggota tim sama.
+#
+# Yang dicek:
+#   1. Format prettier seluruh repo (format:check) — kode wajib seragam.
+#   2. TypeScript type-check (tsc --noEmit) — pastikan tidak ada type error.
+#
+# Melewati (bila memang terpaksa, CI tetap menangkap):
+#   git commit --no-verify      (cara standar git)
+#   SKIP_GIT_CHECKS=1 git commit
+# =============================================================================
+set -e
+
+if [ "$SKIP_GIT_CHECKS" = "1" ]; then
+  exit 0
+fi
+
+# Deteksi runtime: bun (standar proyek) > npx. Kalau tidak ada sama sekali,
+# lewati dengan peringatan — CI check di GitHub tetap menjaga repositori.
+if command -v bun >/dev/null 2>&1; then
+  RUN_PRETTIER="bun run format:check"
+  RUN_TSC="bun tsc --noEmit"
+elif command -v npx >/dev/null 2>&1 && command -v node >/dev/null 2>&1; then
+  RUN_PRETTIER="npx prettier --check ."
+  RUN_TSC="npx tsc --noEmit"
+else
+  echo "⚠️  Pre-commit: bun/node tidak ditemukan — lewati cek lokal (CI tetap jalan)."
+  exit 0
+fi
+
+echo "── Pre-commit: cek format + typecheck ──"
+
+# 1) Format prettier
+if ! $RUN_PRETTIER >/dev/null 2>&1; then
+  echo "❌ Format belum rapi. Jalankan: bun run format  (lalu stage ulang)."
+  $RUN_PRETTIER 2>&1 | head -25
+  exit 1
+fi
+
+# 2) TypeScript type-check (hanya kalau ada file .ts/.mts yang di-stage)
+STAGED=$(git diff --cached --name-only --diff-filter=ACM -- '*.ts' '*.mts')
+if [ -n "$STAGED" ]; then
+  if ! $RUN_TSC >/dev/null 2>&1; then
+    echo "❌ Type error ditemukan. Jalankan: bun tsc --noEmit  (lalu perbaiki)."
+    $RUN_TSC 2>&1 | head -30
+    exit 1
+  fi
+fi
+
+echo "✅ Pre-commit lulus (format rapi + typecheck OK)."
+exit 0

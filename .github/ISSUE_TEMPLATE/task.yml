@@ -1,0 +1,60 @@
+name: 📋 Task
+description: Tugas teknis (refactor, optimization, maintenance)
+labels: ['task']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📋 Task
+        Tugas teknis yang perlu dikerjakan.
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Tipe Task
+      options:
+        - Refactor
+        - Performance Optimization
+        - Code Cleanup
+        - Documentation
+        - Dependency Update
+        - Security Fix
+        - Test Coverage
+        - Build/CI
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Deskripsi
+      description: Jelaskan task yang perlu dikerjakan
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: Kriteria yang harus dipenuhi agar task dianggap selesai
+      placeholder: |
+        - [ ] Kriteria 1
+        - [ ] Kriteria 2
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Low
+        - Medium
+        - High
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: File yang Terpengaruh
+      description: File mana saja yang perlu diubah?

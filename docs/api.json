@@ -1,0 +1,189 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "ASJ Portal API",
+    "description": "Backend API untuk ASJ Portal — platform rekrutmen PT Amanah Sakura Japan.\n\nSemua action melewati **satu endpoint dispatcher** (`POST /`) dengan request body `{ action: string, payload: unknown[] }`. Response berisi hasil dari handler terkait.\n\n## Rate Limiting\n\n- **LOGIN_ACTIONS** (login, daftar, refresh session) — rate limit ketat\n- **AI_ACTIONS** (AI chat, interview, klasifikasi) — rate limit sedang\n- **FONNTE_ACTIONS** (kirim WA) — rate limit sedang\n- **Publik** (getAppData, dll) — tanpa rate limit\n\n## Autentikasi\n\nAdmin: header `Authorization: Bearer <session_token>` (HMAC-SHA256 signed).\nKandidat: token sesi dari `loginKandidat` / `daftarKandidat`.",
+    "version": "2026.08.19",
+    "contact": {
+      "name": "PT Amanah Sakura Japan"
+    },
+    "license": {
+      "name": "Proprietary"
+    }
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Netlify Functions (same origin)"
+    }
+  ],
+  "paths": {
+    "/": {
+      "post": {
+        "operationId": "dispatchAction",
+        "summary": "Dispatcher utama — panggil semua action backend",
+        "description": "Semua action backend dipanggil melalui endpoint ini. Isi `action` dengan nama action dan `payload` dengan array argument.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success — response bergantung pada action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Action tidak dikenal atau payload invalid"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "tags": ["Dispatcher"]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActionRequest": {
+        "type": "object",
+        "required": ["action"],
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "getAppData",
+              "getAppConfig",
+              "reportWebVital",
+              "checkAdminMaster",
+              "checkAdminPersonal",
+              "refreshAdminSession",
+              "refreshKandidatSession",
+              "loginKandidat",
+              "daftarKandidat",
+              "gantiPasswordKandidat",
+              "registerFcmToken",
+              "simpanJobBaru",
+              "editLokerFull",
+              "ubahStatusJob",
+              "hapusJobData",
+              "updateTahapanDbJob",
+              "updateDokumenShare",
+              "tandaiGagalJob",
+              "updateCatatanKandidat",
+              "updateKandidatSuper",
+              "getCandidatesPage",
+              "reviewForm",
+              "approveForm",
+              "rejectForm",
+              "deleteForm",
+              "tandaiDibacaForm",
+              "getUploadUrls",
+              "cekDataPelamar",
+              "isJobRequiresCv",
+              "submitApply",
+              "getExistingCandidateJsonByWa",
+              "getMasterDataByWa",
+              "getDrafCvMaster",
+              "submitMasterForm",
+              "simpanBiodataLengkap",
+              "simpanUpdateMaster",
+              "simpanKandidatDanUpload",
+              "simpanBerkasTahapan",
+              "simpanRevisiKandidat",
+              "simpanJadwalBaru",
+              "hapusJadwal",
+              "tambahTugasBaru",
+              "setTugasStatus",
+              "hapusTugas",
+              "simpanWaTemplate",
+              "hapusWaTemplate",
+              "kirimSatuPesanFonnte",
+              "kirimTawaranMassal",
+              "updateSysConfig",
+              "getRincianPresets",
+              "saveRincianPreset",
+              "deleteRincianPreset",
+              "getDaftarSiswaBaru",
+              "submitDaftarSiswa",
+              "getLinkSiswaBaru",
+              "generateFormBridge",
+              "generateLegacyMasterBridge",
+              "generateAiFormBridge",
+              "getDriveLinkCandidates",
+              "uploadDriveReplacement",
+              "runMigration",
+              "processAIChat",
+              "processAdminAIChat",
+              "processSiswaAIChat",
+              "processAiInterview",
+              "generateWawancaraModel",
+              "simpanHasilWawancara",
+              "selesaikanWawancara",
+              "getHasilWawancara",
+              "parseDokumenBiodata",
+              "getAdminAiContext",
+              "buildAdminAiCandidateSummary",
+              "submitDataAsj",
+              "simpanDataTtdNaitei"
+            ],
+            "description": "Nama action yang akan dipanggil"
+          },
+          "payload": {
+            "type": "array",
+            "items": {},
+            "description": "Argument yang diteruskan ke handler",
+            "default": []
+          }
+        }
+      },
+      "ActionResponse": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean"
+              }
+            }
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          {
+            "type": "object"
+          }
+        ],
+        "description": "Response bergantung pada action yang dipanggil"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Dispatcher",
+      "description": "Endpoint utama untuk semua action"
+    },
+    {
+      "name": "Lainnya",
+      "description": "Action dalam kategori: Lainnya"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+name: keep-alive
+
+# Anti cold-start: Netlify Functions menidurkan instance yang tidak diakses
+# (cold start = latensi + konsumsi kuota saat bangun). Workflow ini menembak
+# dispatcher backend (handlers.js) dengan action 'ping' tiap 5 menit —
+# handler 'ping' melayani respons RAW "pong" SEBELUM inisialisasi apa pun
+# (tanpa Supabase, tanpa dispatch), jadi biaya per panggilan minimal.
+#
+# Catatan GitHub Actions:
+#   - Cron tersedia maksimal tiap 5 menit ('*/5 * * * *') dan bisa tertunda
+#     saat antrean sibuk; untuk SLA ketat gunakan UptimeRobot/Cron-job.org
+#     yang menembak endpoint langsung dari luar GitHub.
+#   - Di repo PRIVATE, workflow terjadwal bisa di-PAUSE otomatis setelah 60
+#     hari tanpa aktivitas repo (kebijakan GitHub) — pastikan repo aktif.
+#   - URL bisa diganti via variabel repo (SETTINGS → Secrets and variables →
+#     Actions → Variables → KEEPALIVE_URL) kalau situs pindah domain.
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping dispatcher Netlify (action=ping)
+        env:
+          PING_URL: ${{ vars.KEEPALIVE_URL || 'https://asjportal.netlify.app/.netlify/functions/auth' }}
+        run: |
+          # POST JSON (jalan baku callAPI) + fallback GET ?action=ping
+          # (wrapper membaca query string kalau body kosong).
+          code=$(curl -s -o /tmp/asj_ping.txt -w "%{http_code}" \
+            --max-time 20 \
+            -X POST "$PING_URL" \
+            -H "Content-Type: application/json" \
+            -d '{"action":"ping"}' \
+            || true)
+          if [ "$code" != "200" ]; then
+            code=$(curl -s -o /tmp/asj_ping.txt -w "%{http_code}" \
+              --max-time 20 \
+              "$PING_URL?action=ping" \
+              || true)
+          fi
+          echo "HTTP $code — $(cat /tmp/asj_ping.txt)"
+          test "$code" = "200"

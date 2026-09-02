@@ -1,0 +1,46 @@
+name: e2e-share
+
+# Endpoint /api/share-data (share.html?job=KODE) harus selalu hidup di produksi —
+# kalau fungsi Netlify tidak ikut ter-deploy, halaman viewer jadi "Akses Ditolak".
+# Workflow ini membuka share.html?job=<loker aktif> dan memastikan kandidat muncul.
+# BASE_URL/SHARE_JOB bisa diubah per environment (lihat e2e/share-view.mjs).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  share-view:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Repo ini tidak punya package-lock.json — npm install (bukan npm ci)
+      # supaya lock dibuat on-the-fly; jangan pakai cache: npm (butuh lock).
+      - name: Install deps (termasuk playwright)
+        run: |
+          npm install
+          npm i playwright
+          npx playwright install chromium --with-deps
+
+      - name: E2E share.html vs produksi
+        run: node e2e/share-view.mjs
+        env:
+          BASE_URL: https://asjportal.netlify.app
+          SHARE_JOB: TG633ASJ
+
+      # Audit read-only: pastikan kolom berkas kandidat (pas_photo/file_cv/
+      # jft/ssw) tidak menunjuk file yang hilang di Storage. Jalankan sebagai
+      # dry-run (tidak pernah menulis). Butuh secrets SUPABASE_URL &
+      # SUPABASE_SERVICE_ROLE_KEY — langkah dilewati bila belum di-set.
+      - name: Audit berkas kandidat vs Storage (dry-run)
+        if: env.SUPABASE_URL != '' && env.SUPABASE_SERVICE_ROLE_KEY != ''
+        run: node scripts/audit-pasphoto.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

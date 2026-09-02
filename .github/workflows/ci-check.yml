@@ -1,0 +1,73 @@
+name: ci-check
+
+# Jaga kualitas repo tetap hijau di SEMUA jalur commit (desktop, HP, GitHub
+# web, lokal): format prettier, lint, unit test, dan build. Menangkap apa pun
+# yang lolos dari git hook lokal (mis. commit via GitHub web / device tanpa
+# runtime).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install
+
+      - name: TypeScript type-check
+        run: bun tsc --noEmit
+
+      - name: Format check (prettier)
+        run: bun run format:check
+
+      - name: Lint (ESLint)
+        run: bun run lint
+
+      # Guard handler inline (onclick/onkeyup) vs registry seam alias —
+      # mencegah regresi ReferenceError "X is not defined" saat refactor ESM
+      # (kasus filterKelolaLoker/filterCbx/cekRiwayat 2026-08-18).
+      - name: Check handler aliases (seam)
+        run: bun run check:handlers
+
+      - name: Unit test (Vitest)
+        run: bun run test
+
+      - name: Build lengkap
+        run: bun run build
+
+      - name: Bundle size report
+        run: bun run bundle:size
+
+      # E2E share-view (API + best-effort browser). Butuh env Supabase asli —
+      # step di-skip otomatis kalau secrets belum dikonfigurasi di repo.
+      # Browser check di dalam skrip best-effort (dilewati kalau chromium
+      # tidak ter-install); yang dijamin adalah API check share-data.
+      - name: E2E share-view
+        if: ${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_ANON_KEY != '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_STORAGE_BUCKET: ${{ secrets.SUPABASE_STORAGE_BUCKET }}
+          FONNTE_TOKEN: ${{ secrets.FONNTE_TOKEN }}
+        run: |
+          bun serve-static.mts >/tmp/serve.log 2>&1 &
+          SRV=$!
+          for i in $(seq 1 30); do
+            curl -sf "http://127.0.0.1:3000/.netlify/functions/app?action=ping" >/dev/null 2>&1 && break
+            sleep 1
+          done
+          BASE_URL="http://127.0.0.1:3000" node e2e/share-view.mjs
+          RC=$?
+          kill $SRV 2>/dev/null || true
+          exit $RC

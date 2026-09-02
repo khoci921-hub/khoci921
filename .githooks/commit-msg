@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# commit-msg — validate conventional commit message format.
+# Runs commitlint if available; skips gracefully otherwise.
+
+if [ "$SKIP_GIT_CHECKS" = "1" ]; then
+  exit 0
+fi
+
+# Find commitlint binary
+COMMITLINT=""
+if command -v bun >/dev/null 2>&1; then
+  COMMITLINT="bunx commitlint"
+elif command -v npx >/dev/null 2>&1; then
+  COMMITLINT="npx commitlint"
+else
+  echo "⚠️  commit-msg: commitlint tidak ditemukan — lewati validasi."
+  exit 0
+fi
+
+# Validate the commit message
+$COMMITLINT --edit "$1" 2>&1
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+  echo ""
+  echo "💡 Format commit message harus: type(scope): description"
+  echo "   Contoh: feat(auth): add refresh token"
+  echo "            fix(filter): handle null tahapan"
+  echo "            docs: update MEMORY.md"
+  echo ""
+  echo "   Type: feat | fix | docs | style | refactor | perf | test | build | ci | chore | revert"
+  echo ""
+fi
+
+exit $EXIT_CODE

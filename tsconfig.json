@@ -1,0 +1,52 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": false,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": false,
+    "types": ["node"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+  },
+  "include": [
+    "types/**/*.d.ts",
+    "types/**/*.ts",
+    "api-client.ts",
+    "i18n.ts",
+    "pwa.ts",
+
+    "serve-static.mts",
+    "js/**/*.ts",
+    "js/**/*.mts",
+    "netlify/functions/_lib/**/*.ts",
+    "netlify/functions/_lib/**/*.mts",
+    "scripts/**/*.mts",
+    "shared/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "assets",
+    "vendor",
+    "skills",
+    "hooks",
+    "e2e",
+    "i18n/locales",
+    "eslint.config.js",
+    ".githooks",
+    "netlify/functions/*.js",
+    "*.test.ts",
+    "scripts/dedupe-rules.test.ts",
+    "tests/ping.test.ts"
+  ]
+}

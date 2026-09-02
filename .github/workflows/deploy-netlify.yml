@@ -1,0 +1,31 @@
+name: deploy-netlify
+
+# Deploy ke Netlify (site asjportal) via build hook.
+#
+# SENG AJA manual (workflow_dispatch): deploy tetap butuh keputusan eksplisit
+# pemilik, sesuai DEPLOY.md §2. Kalau pemilik setuju auto-deploy tiap push ke
+# main, hapus komentar blok `push:` di bawah — CI (ci-check.yml) tetap jalan
+# duluan sebagai gate kualitas sebelum workflow ini dipicu.
+#
+# URL build hook disimpan di GitHub Actions secret NETLIFY_BUILD_HOOK_URL
+# (bukan di repo) — set via API 2026-08-18; cara ganti: GitHub → Settings →
+# Secrets and variables → Actions.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger build Netlify (asjportal)
+        env:
+          HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK_URL" ]; then
+            echo "::error::Secret NETLIFY_BUILD_HOOK_URL kosong — set dulu di repo settings."
+            exit 1
+          fi
+          curl -sf -X POST "$HOOK_URL"
+          echo "Build Netlify dipicu — cek status di https://app.netlify.com/projects/asjportal/deploys"

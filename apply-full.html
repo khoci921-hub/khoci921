@@ -1,0 +1,365 @@
+<head>
+  <meta name="referrer" content="no-referrer">
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>ASJ FORM</title>
+  <link rel="manifest" href="/manifest.webmanifest?v=8f163ba13c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#020617">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=b90abf8d0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ASJ Portal">
+  
+  
+
+<!--HEAD_SHARED_START-->
+  <link rel="stylesheet" href="/vendor/font-awesome/css/all.min.css?v=8230c4590e">
+  <link rel="stylesheet" href="/fonts/fonts.css?v=1dd324a9c7">
+  <!-- Preload font kritis (Montserrat, UI font) — href & url() di fonts.css memakai ?v yang sama. -->
+  <link rel="preload" as="font" type="font/woff2" href="/fonts/montserrat-latin.woff2?v=9b1446d51c" crossorigin>
+<!--HEAD_SHARED_END-->
+
+  <style>
+    html, body { background-color: #020617 !important; color: #f8fafc !important; }
+    
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; }
+    body { background:#020617; color:#fff; padding-bottom: 90px; }
+    
+    .hero { height:260px; position:relative; overflow:hidden; }
+    .bg-hero { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:brightness(.35); }
+    .overlay { position:absolute; inset:0; background:linear-gradient(to bottom, rgba(0,0,0,.25), #020617); }
+    .header { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); text-align:center; width:100%; padding:0 20px; z-index:10; }
+    
+    .logo { width:100px; height:100px; border-radius:50%; margin:auto; box-shadow:0 15px 35px rgba(0,0,0,.5); object-fit:cover; object-position:center; position:relative; z-index:15; background:transparent; border:none; padding:0; }
+    
+    .jp { margin-top:15px; letter-spacing:7px; font-size:11px; font-weight:700; color:#ff6db2; }
+    .title { font-size:28px; font-weight:900; margin-top:5px; }
+    .sub { font-size:13px; margin-top:5px; color:#cbd5e1; }
+    
+    .container { max-width:480px; margin:auto; padding:15px; margin-top:-40px; position:relative; z-index:20; }
+    .glass { background:rgba(15,23,42,.88); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.08); border-radius:28px; padding:25px; box-shadow:0 25px 60px rgba(0,0,0,.45); }
+    
+    .stepper-wrapper { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; position:relative; }
+    .stepper-line { position:absolute; top:18px; left:15%; right:15%; height:3px; background:#334155; z-index:1; }
+    .stepper-line-active { position:absolute; top:18px; left:15%; height:3px; background:#ec4899; z-index:2; transition:width 0.4s ease; width:0%; }
+    
+    .step-item { position:relative; z-index:3; display:flex; flex-direction:column; align-items:center; gap:8px; width:33%; }
+    .step-circle { width:38px; height:38px; border-radius:50%; background:#1e293b; border:2px solid #334155; display:flex; justify-content:center; align-items:center; font-weight:800; color:#cbd5e1; transition:0.3s; }
+    .step-text { font-size:11px; font-weight:700; color:#64748b; transition:0.3s; }
+    
+    .step-item.active .step-circle { background:#ec4899; border-color:#ec4899; color:white; box-shadow:0 0 15px rgba(236,72,153,.4); }
+    .step-item.active .step-text { color:#ec4899; }
+    .step-item.completed .step-circle { background:#db2777; border-color:#db2777; color:white; }
+    .step-item.completed .step-text { color:#cbd5e1; }
+
+    .step-content { display:none; animation:fadeIn 0.4s ease-in-out; }
+    .step-content.active { display:block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    .form-group { margin-bottom:20px; }
+    .label { display:block; font-size:13px; font-weight:700; margin-bottom:8px; color:#cbd5e1; }
+    .field { position:relative; }
+    .field i { position:absolute; left:18px; top:50%; transform:translateY(-50%); color:#ec4899; font-size:18px; }
+    .input { width:100%; height:55px; padding:0 18px 0 54px; background:#0f172a; border:1px solid #334155; border-radius:16px; color:white; font-size:14px; transition:.25s; }
+    .input:focus { outline:none; border-color:#ec4899; box-shadow:0 0 0 4px rgba(236,72,153,.15); }
+    .input::placeholder { color:#64748b; }
+    select.input { appearance:none; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .tip { margin-top:6px; font-size:11px; color:#64748b; }
+
+    .upload-card { background:#0f172a; border:1px solid #334155; border-radius:20px; padding:20px; margin-bottom:18px; }
+    .upload-top { display:flex; align-items:center; justify-content:space-between; }
+    .upload-left { display:flex; align-items:center; gap:14px; }
+    .upload-icon { width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:20px; color:white; }
+    
+    .photo-bg { background:linear-gradient(135deg,#ec4899,#db2777); }
+    .cv-bg { background:linear-gradient(135deg,#f59e0b,#d97706); }
+    .jft-bg { background:linear-gradient(135deg,#0ea5e9,#2563eb); }
+    .ssw-bg { background:linear-gradient(135deg,#10b981,#059669); }
+    
+    .upload-title { font-size:16px; font-weight:800; }
+    .upload-sub { margin-top:4px; font-size:11px; color:#94a3b8; }
+    .upload-btn { padding:10px 18px; border:none; border-radius:12px; font-size:12px; font-weight:800; color:white; cursor:pointer; transition:.2s; }
+    .upload-btn:hover { filter: brightness(1.1); }
+    
+    .photo-btn { background:#ec4899; } 
+    .cv-btn { background:#d97706; }
+    .jft-btn { background:#0284c7; } 
+    .ssw-btn { background:#059669; }
+    
+    .file-name { margin-top:15px; padding:12px; background:#020617; border-radius:12px; font-size:12px; color:#94a3b8; word-break:break-all; }
+    .preview-img { width:100%; height:160px; object-fit:contain; background:#020617; border-radius:12px; margin-top:15px; display:none; border:1px solid #334155; }
+    .size-warn { color:#f43f5e; font-size:11px; margin-top:8px; display:none; font-weight:700; }
+
+    .confirm { background:#0f172a; border:1px solid #334155; border-radius:20px; padding:20px; display:flex; gap:15px; align-items:flex-start; margin-bottom:20px;}
+    .confirm input { margin-top:4px; width:22px; height:22px; accent-color:#ec4899; }
+    .confirm p { font-size:13px; line-height:24px; color:#cbd5e1; }
+    
+    .footerInfo { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .footerCard { background:#0f172a; border:1px solid #334155; border-radius:16px; padding:15px 10px; text-align:center; }
+    .footerCard i { font-size:20px; color:#ec4899; margin-bottom:8px; }
+    .footerCard div { font-size:10px; color:#cbd5e1; font-weight:800; }
+
+    .sticky-nav { position:fixed; bottom:0; left:0; width:100%; background:rgba(2,6,23,.95); backdrop-filter:blur(10px); border-top:1px solid #1e293b; padding:15px 20px; z-index:50; display:flex; justify-content:space-between; gap:15px; }
+    .btn-nav { flex:1; height:55px; border-radius:16px; font-size:15px; font-weight:800; transition:0.3s; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; border:none; }
+    .btn-prev { background:#1e293b; color:#cbd5e1; }
+    .btn-prev:hover { background:#334155; }
+    .btn-next { background:linear-gradient(90deg,#ec4899,#db2777); color:white; box-shadow:0 10px 25px rgba(236,72,153,.25); }
+    .btn-next:hover { transform:translateY(-2px); }
+    .btn-next:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+
+    .loading, .success { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,.92); backdrop-filter:blur(5px); z-index:9999; }
+    .loadingBox { text-align:center; }
+    .loadingCircle { width:70px; height:70px; border-radius:50%; border:4px solid #334155; border-top-color:#ec4899; margin:auto; animation:spin 1s linear infinite; }
+    @keyframes spin { 100% { transform:rotate(360deg); } }
+    .successBox { width:90%; max-width:340px; background:#0f172a; border:1px solid #10b981; border-radius:24px; padding:30px; text-align:center; }
+    .successBox h2 { margin-top:15px; font-size:24px; font-weight:900; }
+    .successBox p { margin-top:10px; font-size:14px; color:#94a3b8; line-height:22px; }
+    .successBtn { margin-top:20px; width:100%; height:50px; border:none; border-radius:14px; background:#10b981; font-weight:800; color:white; cursor:pointer; }
+    
+    .hidden { display: none !important; }
+  </style>
+  <link rel="stylesheet" crossorigin href="/assets/main.css?v=ed681b7b61">
+</head><body data-page="apply-full">
+<!--THEME_INIT_START-->
+<script>try{var _t=localStorage.getItem('asj_theme');document.body.classList.add(_t==='SAKURA'?'theme-light':'theme-dark')}catch(e){document.body.classList.add('theme-dark')}</script>
+<!--THEME_INIT_END-->
+  <!-- BACK TO PORTAL -->
+  <a href="/" class="fixed top-4 left-4 z-[100] flex items-center gap-2 px-4 py-2 bg-black/70 hover:bg-black/90 text-white text-xs font-bold rounded-full border border-white/20 backdrop-blur-sm transition-all shadow-lg hover:scale-105" aria-label="Kembali ke Portal">
+    <i class="fas fa-arrow-left"></i>
+    <span class="hidden sm:inline">Portal</span>
+  </a>
+  <!-- Skip link: lompat langsung ke konten utama (WCAG 2.4.1) -->
+  <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
+
+  <!-- HERO SECTION -->
+  <div class="hero">
+    <img class="bg-hero" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1600&q=80" alt="">
+    <div class="overlay"></div>
+    <div class="header">
+      <img class="logo" src="https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/logo_apply.png" alt="Logo ASJ">
+      <div class="jp">日本への挑戦</div>
+      <div class="title">PT AMANAH SAKURA JAPAN</div>
+    </div>
+  </div>
+
+  <main id="main-content" tabindex="-1" class="container">
+    <div class="glass">
+      
+      <!-- STEPPER WIZARD -->
+      <div class="stepper-wrapper">
+        <div class="stepper-line"></div>
+        <div class="stepper-line-active" id="progress-line"></div>
+        
+        <div class="step-item active" id="indicator-1">
+          <div class="step-circle"><i class="fa-solid fa-user"></i></div>
+          <div class="step-text">Data Diri</div>
+        </div>
+        <div class="step-item" id="indicator-2">
+          <div class="step-circle"><i class="fa-solid fa-file-arrow-up"></i></div>
+          <div class="step-text">Dokumen</div>
+        </div>
+        <div class="step-item" id="indicator-3">
+          <div class="step-circle"><i class="fa-solid fa-check-double"></i></div>
+          <div class="step-text">Kirim</div>
+        </div>
+      </div>
+
+      <!-- STEP 1: DATA PELAMAR -->
+      <div id="step-1" class="step-content active">
+        <div class="form-group">
+          <label class="label">Nomer Job ASJ</label>
+          <div class="field"><i class="fa-solid fa-briefcase"></i>
+            <input id="job" name="job" aria-label="Nomor Job" autocomplete="off" readonly value="" class="input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="label">Bidang Pekerjaan</label>
+          <div class="field"><i class="fa-solid fa-layer-group"></i>
+            <input id="bidang" name="bidang" aria-label="Bidang" autocomplete="off" readonly value="" class="input">
+          </div>
+        </div>
+        
+        <!-- KOLOM WHATSAPP DENGAN RADAR CEK RIWAYAT (AUTO-FILL PORTAL) -->
+        <div class="form-group">
+          <label class="label">Nomor WhatsApp</label>
+          <div class="field"><i class="fa-brands fa-whatsapp"></i>
+            <input id="wa" name="wa" aria-label="WhatsApp" type="tel" autocomplete="tel" value="" onblur="formatInputWA(this); cekRiwayat();" placeholder="Contoh: 08123456789" class="input">
+            <span id="wa-loading" class="absolute right-4 top-1/2 -translate-y-1/2 hidden"><i class="fas fa-spinner fa-spin text-emerald-500 text-lg"></i></span>
+          </div>
+          <div id="wa-msg" aria-live="polite" class="text-xs text-emerald-400 font-bold hidden mt-3 bg-emerald-900/30 p-2.5 rounded-lg border border-emerald-500/30"><i class="fas fa-check-circle mr-1"></i> Data riwayat ditemukan! Form & Dokumen otomatis disesuaikan.</div>
+          <div id="wa-warn" aria-live="polite" class="text-xs text-amber-300 font-bold hidden mt-3 bg-amber-900/40 p-2.5 rounded-lg border border-amber-500/40"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Nama Lengkap</label>
+          <div class="field"><i class="fa-solid fa-user"></i>
+            <input id="nama" name="nama" aria-label="Nama Lengkap" autocomplete="name" value="" placeholder="Sesuai KTP / Paspor" class="input">
+          </div>
+          <div class="tip">Akan otomatis menjadi HURUF KAPITAL</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Alamat Email Aktif</label>
+          <div class="field"><i class="fa-solid fa-envelope"></i>
+            <input id="email" name="email" aria-label="Email" type="email" autocomplete="email" placeholder="Contoh: nama@gmail.com" class="input">
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="form-group">
+            <label class="label">Gender</label>
+            <div class="field"><i class="fa-solid fa-venus-mars"></i>
+              <select id="gender" aria-label="Gender" class="input">
+                <option value="">Pilih</option><option>LAKI-LAKI</option><option>PEREMPUAN</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="label">Usia</label>
+            <div class="field"><i class="fa-solid fa-cake-candles"></i>
+              <input id="usia" aria-label="Usia" name="usia" type="number" inputmode="numeric" autocomplete="off" placeholder="Misal: 22" class="input">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label class="label">Tinggi Badan</label>
+            <div class="field"><i class="fa-solid fa-ruler-vertical"></i>
+              <input id="tb" aria-label="Tinggi Badan" name="tb" type="number" inputmode="numeric" autocomplete="off" placeholder="cm" class="input">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="label">Berat Badan</label>
+            <div class="field"><i class="fa-solid fa-weight-scale"></i>
+              <input id="bb" aria-label="Berat Badan" name="bb" type="number" inputmode="numeric" autocomplete="off" placeholder="kg" class="input">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: UPLOAD DOKUMEN -->
+      <div id="step-2" class="step-content">
+        <!-- PHOTO -->
+        <div class="upload-card">
+          <div class="upload-top">
+            <div class="upload-left">
+              <div class="upload-icon photo-bg"><i class="fa-solid fa-image"></i></div>
+              <div><div class="upload-title">PAS PHOTO</div><div class="upload-sub">Format: JPG / PNG • Maks 2 MB</div></div>
+            </div>
+            <button type="button" onclick="photo.click()" class="upload-btn photo-btn">PILIH</button>
+          </div>
+          <input id="photo" aria-label="Pas Photo" type="file" accept=".jpg,.jpeg,.png" hidden>
+          <img id="photoPreview" class="preview-img" alt="">
+          <div id="photoInfo" class="file-name">Belum ada file dipilih</div>
+          <div id="photoWarn" class="size-warn"><i class="fa-solid fa-circle-exclamation"></i> Gagal! Ukuran file melebihi 2 MB.</div>
+        </div>
+
+        <!-- CV EXCEL / FORMAT TSK (DEFAULT DI-HIDE TAPI BISA DIMUNCULKAN OLEH RADAR) -->
+        <div class="upload-card hidden" id="card-cv">
+          <div class="upload-top">
+            <div class="upload-left">
+              <div class="upload-icon cv-bg"><i class="fa-solid fa-file-excel"></i></div>
+              <div><div class="upload-title">FORMAT CV ASJ</div><div class="upload-sub">Format: Excel/PDF • Maks 2 MB</div></div>
+            </div>
+            <button type="button" onclick="cv.click()" class="upload-btn cv-btn">UPLOAD</button>
+          </div>
+          <input id="cv" aria-label="CV" type="file" accept=".pdf,.xls,.xlsx,.doc,.docx" hidden>
+          <div id="cvInfo" class="file-name">Belum ada file dipilih</div>
+          <div id="cvWarn" class="size-warn"><i class="fa-solid fa-circle-exclamation"></i> Gagal! Ukuran file melebihi 2 MB.</div>
+        </div>
+
+        <!-- JFT -->
+        <div class="upload-card hidden" id="card-jft">
+          <div class="upload-top">
+            <div class="upload-left">
+              <div class="upload-icon jft-bg"><i class="fa-solid fa-file-pdf"></i></div>
+              <div><div class="upload-title">JFT CERTIFICATE</div><div class="upload-sub">Format: PDF • Maks 2 MB</div></div>
+            </div>
+            <button type="button" onclick="jft.click()" class="upload-btn jft-btn">UPLOAD</button>
+          </div>
+          <input id="jft" aria-label="Sertifikat JFT" type="file" accept=".pdf" hidden>
+          <div id="jftInfo" class="file-name">Belum ada file dipilih</div>
+          <div id="jftWarn" class="size-warn"><i class="fa-solid fa-circle-exclamation"></i> Gagal! Ukuran file melebihi 2 MB.</div>
+        </div>
+
+        <!-- SSW -->
+        <div class="upload-card hidden" id="card-ssw">
+          <div class="upload-top">
+            <div class="upload-left">
+              <div class="upload-icon ssw-bg"><i class="fa-solid fa-file-pdf"></i></div>
+              <div><div class="upload-title">SSW CERTIFICATE</div><div class="upload-sub">Format: PDF • Maks 2 MB</div></div>
+            </div>
+            <button type="button" onclick="ssw.click()" class="upload-btn ssw-btn">UPLOAD</button>
+          </div>
+          <input id="ssw" aria-label="Sertifikat SSW" type="file" accept=".pdf" hidden>
+          <div id="sswInfo" class="file-name">Belum ada file dipilih</div>
+          <div id="sswWarn" class="size-warn"><i class="fa-solid fa-circle-exclamation"></i> Gagal! Ukuran file melebihi 2 MB.</div>
+        </div>
+
+        <!-- DYNAMIC EXTRA FILES CONTAINER -->
+        <div id="dynamic-cards"></div>
+      </div>
+
+      <!-- STEP 3: KONFIRMASI -->
+      <div id="step-3" class="step-content">
+        <div class="confirm">
+          <input id="agree" name="agree" type="checkbox">
+          <p>Saya menyatakan dengan sesungguhnya bahwa seluruh data dan dokumen yang saya unggah adalah <b>benar dan asli</b>. Apabila dikemudian hari ditemukan pemalsuan, saya bersedia menerima sanksi pembatalan dari ASJ.</p>
+        </div>
+        <div class="footerInfo">
+          <div class="footerCard"><i class="fa-solid fa-bolt"></i><div>PROSES CEPAT</div></div>
+          <div class="footerCard"><i class="fa-solid fa-shield-halved"></i><div>DATA AMAN</div></div>
+          <div class="footerCard"><i class="fa-solid fa-torii-gate"></i><div>ASJ JAPAN</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- STICKY BOTTOM NAVIGATION -->
+  <div class="sticky-nav" id="nav-area">
+    <button id="btnPrev" class="btn-nav btn-prev" onclick="changeStep(-1)" style="display:none;"><i class="fa-solid fa-chevron-left"></i> Kembali</button>
+    <button id="btnNext" class="btn-nav btn-next" onclick="changeStep(1)">Lanjut <i class="fa-solid fa-chevron-right"></i></button>
+    <button id="btnSubmit" class="btn-nav btn-next" onclick="submitApply()" style="display:none;"><i class="fa-solid fa-paper-plane"></i> KIRIM LAMARAN</button>
+  </div>
+
+  <!-- MODALS -->
+  <div id="loading" class="loading">
+    <div class="loadingBox">
+      <div class="loadingCircle"></div>
+      <h2 style="margin-top:20px; color:white; font-size:20px; font-weight:800;">Mengirim Lamaran…</h2>
+      <p style="margin-top:8px; font-size:12px; color:#94a3b8">Mohon tunggu dan jangan tutup halaman ini.</p>
+    </div>
+  </div>
+  <div id="success" class="success">
+    <div class="successBox">
+      <div style="font-size:60px; margin-bottom:10px;">✅</div>
+      <h2>Berhasil!</h2>
+      <p>Data & Dokumen lamaran Anda telah masuk ke Sistem ASJ.</p>
+      <button class="successBtn" onclick="window.top.location.href='/index.html'">KEMBALI KE PORTAL</button>
+    </div>
+  </div>
+
+  <!-- SCRIPT ENGINE -->
+  <!-- Fase 3.5 L6: js/pages/apply_full.js = entry ESM — meng-import core sendiri
+       lewat bridge.js (i18n + api-client), jadi tag core terpisah tidak perlu lagi -->
+<!--SCRIPTS_SHARED_START-->
+<script type="importmap">
+{
+  "imports": {
+    "@sentry/browser": "/js/core/sentry-dummy.js"
+  }
+}
+</script>
+  <!-- Logika murni model dokumen upload (di-unit-test: scripts/__tests__/apply-docs.test.js) -->
+  <script type="module" src="/js/apply-docs.js?v=esm13"></script>
+  <script type="module" src="/js/upload-guard.js?v=esm13"></script>
+  <!-- Fase 2: inline script dipindah ke js/pages/apply_full.js (isi byte-identik) -->
+  <script type="module" src="/js/pages/apply_full.js?v=esm14"></script>
+  <script type="module" src="/pwa.js?v=esm15"></script>
+<!--SCRIPTS_SHARED_END-->
+</body>
+</html>

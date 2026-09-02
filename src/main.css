@@ -1,0 +1,2519 @@
+/* ============================================================
+   main.css — INPUT build Tailwind v4 (output: assets/main.css)
+   ------------------------------------------------------------
+   Cara build (wajib setelah ubah HTML/JS yang menambah kelas):
+       bun run build:css
+   Build ini MENGGANTI assets/main-BNVm_Ism.css (artefak build lama
+   yang "beku" — kelas baru tidak pernah masuk). Hasilnya adalah
+   Tailwind v4.3.3 + tema & CSS custom ASLI situs, di-scan dari
+   seluruh HTML/JS terkini.
+   ============================================================ */
+@import 'tailwindcss';
+
+/* --- Sumber kelas: semua halaman + JS frontend (termasuk template literal) --- */
+@source "./../*.html";
+@source "./../partials/**/*.html";
+@source "./../js/**/*.js";
+@source "./../e2e/**/*.mjs";
+
+/* --- Safelist: kelas dinamis di 11_admin_ops.js (bg-${cat.color}-* dll).
+       Nilai cat.color: purple, emerald, red, sky, amber, rose. --- */
+@source inline("bg-purple-900/30 text-purple-300 border-purple-500/30 border-purple-500/50 bg-purple-600 hover:bg-purple-500 hover:bg-purple-600 text-purple-400 focus:border-purple-500");
+@source inline("bg-emerald-900/30 text-emerald-300 border-emerald-500/30 border-emerald-500/50 bg-emerald-600 hover:bg-emerald-500 hover:bg-emerald-600 text-emerald-400 focus:border-emerald-500");
+@source inline("bg-red-900/30 text-red-300 border-red-500/30 border-red-500/50 bg-red-600 hover:bg-red-500 hover:bg-red-600 text-red-400 focus:border-red-500");
+@source inline("bg-sky-900/30 text-sky-300 border-sky-500/30 border-sky-500/50 bg-sky-600 hover:bg-sky-500 hover:bg-sky-600 text-sky-400 focus:border-sky-500");
+@source inline("bg-amber-900/30 text-amber-300 border-amber-500/30 border-amber-500/50 bg-amber-600 hover:bg-amber-500 hover:bg-amber-600 text-amber-400 focus:border-amber-500");
+@source inline("bg-rose-900/30 text-rose-300 border-rose-500/30 border-rose-500/50 bg-rose-600 hover:bg-rose-500 hover:bg-rose-600 text-rose-400 focus:border-rose-500");
+
+/* --- Tema kustom ASJ (diekstrak verbatim dari build asli):
+       palet slate grayscale, emerald brand, radius tajam --- */
+@theme {
+  --color-emerald-300: #8fd400;
+  --color-emerald-400: #76b900;
+  --color-emerald-500: #6aab00;
+  --color-emerald-600: #5a8d00;
+  --color-emerald-700: #4a7500;
+  --color-emerald-800: oklch(43.2% 0.095 166.913);
+  --color-emerald-900: #1e3300;
+  --color-slate-100: #f5f5f5;
+  --color-slate-200: #d4d4d4;
+  --color-slate-300: #c7c7c7;
+  --color-slate-400: #9a9a9a;
+  --color-slate-500: #757575;
+  --color-slate-600: #383838;
+  --color-slate-700: #2b2b2b;
+  --color-slate-800: #1a1a1a;
+  --color-slate-900: #101010;
+  --color-slate-950: #000;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 2px;
+  --radius-2xl: 2px;
+  --radius-3xl: 1.5rem;
+}
+
+/* --- Komponen custom (layer components, bisa ditimpa utility) --- */
+/* glass-panel dibuat SOLID (tanpa backdrop blur / transparan) supaya
+   teks selalu terbaca jelas dan tidak terlihat glossy di semua halaman. */
+@layer components {
+  .glass-panel {
+    background: #0d0d0d;
+    border: 1px solid #ffffff26;
+  }
+}
+
+/* ============================================================
+   MENU SAMPING (hamburger) — solid & IKUT THEME Light/Dark.
+   Warna dikendalikan CSS variable; body.theme-light menimpanya.
+   ============================================================ */
+#mobile-nav-menu {
+  --mn-bg: #101010;
+  --mn-surface: rgba(255, 255, 255, 0.1);
+  --mn-surface-hover: rgba(255, 255, 255, 0.18);
+  --mn-text: #ffffff;
+  --mn-dim: #9a9a9a;
+  --mn-border: rgba(255, 255, 255, 0.1);
+  background: var(--mn-bg);
+}
+body.theme-light #mobile-nav-menu {
+  --mn-bg: #ffffff;
+  --mn-surface: #f5f5f4;
+  --mn-surface-hover: #e7e5e4;
+  --mn-text: #1c1917;
+  --mn-dim: #78716c;
+  --mn-border: #e7e5e4;
+}
+.mn-bg {
+  background: var(--mn-bg);
+}
+.mn-surface {
+  background: var(--mn-surface);
+  color: var(--mn-text);
+  border: 1px solid var(--mn-border);
+}
+.mn-surface:hover {
+  background: var(--mn-surface-hover);
+}
+.mn-head {
+  color: var(--mn-text);
+}
+.mn-dim {
+  color: var(--mn-dim);
+}
+.mn-dim:hover {
+  color: var(--mn-text);
+}
+.mn-border {
+  border-color: var(--mn-border);
+}
+
+/* ============================================================
+   BANNER & FOOTER — bentuk KOTAK (bukan oval) + gambar default
+   per tema, sehingga selalu tampil walau backend belum kirim aset.
+   ============================================================ */
+#asj-header {
+  border-radius: 0;
+  background-image: url('https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/tokyo_banner.jpg');
+}
+body.theme-light #asj-header {
+  background-image: url('https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/sakra_banner.webp');
+}
+#asj-footer {
+  border-radius: 0;
+  background-image: url('https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/tokyo_footer.jpg');
+}
+body.theme-light #asj-footer {
+  background-image: url('https://gdwvffmevwtwnzrapjwy.supabase.co/storage/v1/object/public/asj-files/assets/sakura_footer.webp');
+}
+
+/* ============================================================
+   TEMA LIGHT UNTUK PANEL ADMIN, DASHBOARD KANDIDAT, & MODAL
+   ------------------------------------------------------------
+   Saat body.theme-light aktif: permukaan gelap -> terang, teks
+   terang -> gelap. Tombol dengan latar warna TETAP putih teksnya.
+   Kotak aksen gelap di kandidat (kartu ID, jadwal, riwayat)
+   dibiarkan gelap supaya tetap terbaca.
+   ============================================================ */
+
+/* --- Permukaan admin & modal: gelap -> putih/abu terang --- */
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(
+    .bg-slate-950,
+    .bg-slate-900,
+    .bg-slate-900\/95,
+    .bg-slate-900\/80,
+    .bg-slate-900\/70,
+    .bg-slate-900\/60,
+    .bg-slate-900\/50,
+    .bg-slate-900\/40,
+    .bg-slate-950\/80,
+    .bg-slate-950\/60,
+    .bg-slate-950\/50
+  ) {
+  background-color: #ffffff;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-slate-800, .bg-slate-800\/80, .bg-slate-800\/50, .bg-slate-800\/40) {
+  background-color: #f1f1f1;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-slate-700, .bg-slate-700\/60, .bg-slate-700\/80) {
+  background-color: #e2e2e2;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-slate-600, .bg-slate-600\/60) {
+  background-color: #d4d4d4;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-black, .bg-black\/20, .bg-black\/30, .bg-black\/40, .bg-black\/50, .bg-black\/60) {
+  background-color: #f5f5f5;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-white\/5, .bg-white\/10, .bg-white\/20, .bg-white\/30) {
+  background-color: #ececec;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.hover\:bg-white\/5:hover, .hover\:bg-white\/10:hover, .hover\:bg-white\/20:hover) {
+  background-color: #e4e4e4;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.hover\:bg-black\/40:hover, .hover\:bg-black\/60:hover) {
+  background-color: #e4e4e4;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.hover\:bg-slate-700:hover, .hover\:bg-slate-600:hover) {
+  background-color: #d6d6d6;
+}
+/* Badge warna transparan-gelap -> tint terang */
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-amber-900\/20, .bg-amber-900\/25) {
+  background-color: #fdf1cf;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-amber-900\/40, .bg-amber-900\/60) {
+  background-color: #fde9b0;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-amber-500\/20, .bg-amber-600\/20) {
+  background-color: rgba(245, 158, 11, 0.15);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .bg-amber-600\/40 {
+  background-color: rgba(217, 119, 6, 0.18);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-emerald-900\/20, .bg-emerald-900\/30) {
+  background-color: #e9f5dc;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-emerald-900\/40, .bg-emerald-900\/60) {
+  background-color: #e2f1d0;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-pink-900\/40, .bg-pink-900\/50, .bg-pink-900\/80) {
+  background-color: #fce7f3;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .bg-pink-600\/20 {
+  background-color: rgba(219, 39, 119, 0.12);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .bg-purple-900\/40 {
+  background-color: #f3e8ff;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-red-900\/10, .bg-red-900\/20) {
+  background-color: #feecec;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-red-900\/30, .bg-red-900\/40, .bg-red-900\/50) {
+  background-color: #fee2e2;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.bg-sky-900\/20, .bg-sky-900\/40, .bg-sky-900\/50, .bg-sky-900\/60, .bg-sky-900\/80) {
+  background-color: #dceefd;
+}
+
+/* --- Border & pemisah admin/modal: gelap -> terang --- */
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.border-slate-800, .border-slate-700, .border-slate-600, .border-slate-500) {
+  border-color: #dcdcdc;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.border-white\/10, .border-white\/20, .border-white\/30) {
+  border-color: #e2e2e2;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-slate-500\/50 {
+  border-color: rgba(117, 117, 117, 0.25);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-slate-700\/50 {
+  border-color: rgba(43, 43, 43, 0.18);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-amber-500\/20 {
+  border-color: rgba(245, 158, 11, 0.12);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.border-amber-500\/30, .border-amber-500\/40) {
+  border-color: rgba(245, 158, 11, 0.22);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-amber-500\/50 {
+  border-color: rgba(245, 158, 11, 0.32);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-amber-900\/50 {
+  border-color: rgba(180, 83, 9, 0.3);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.border-emerald-500\/30, .border-emerald-500\/40) {
+  border-color: rgba(106, 171, 0, 0.28);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-emerald-500\/50 {
+  border-color: rgba(106, 171, 0, 0.35);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.border-emerald-700\/50, .border-emerald-900\/50) {
+  border-color: rgba(74, 117, 0, 0.3);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.border-pink-500\/30, .border-pink-500\/50) {
+  border-color: rgba(236, 72, 153, 0.3);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-pink-900\/50 {
+  border-color: rgba(190, 24, 93, 0.3);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-purple-500\/50 {
+  border-color: rgba(168, 85, 247, 0.3);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.border-purple-900\/30, .border-purple-900\/50) {
+  border-color: rgba(107, 33, 168, 0.25);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-red-500\/30 {
+  border-color: rgba(239, 68, 68, 0.28);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.border-red-900\/30, .border-red-900\/50) {
+  border-color: rgba(153, 27, 27, 0.28);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-rose-500\/50 {
+  border-color: rgba(244, 63, 94, 0.3);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-rose-900\/50 {
+  border-color: rgba(136, 19, 55, 0.28);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.border-sky-500\/30, .border-sky-500\/40) {
+  border-color: rgba(14, 165, 233, 0.28);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .border-sky-500\/50 {
+  border-color: rgba(14, 165, 233, 0.35);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.border-sky-700\/50, .border-sky-900\/50) {
+  border-color: rgba(3, 105, 161, 0.3);
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(
+    .divide-slate-800 > :not([hidden]) ~ :not([hidden]),
+    .divide-slate-700 > :not([hidden]) ~ :not([hidden]),
+    .divide-white\/5 > :not([hidden]) ~ :not([hidden]),
+    .divide-white\/10 > :not([hidden]) ~ :not([hidden])
+  ) {
+  border-color: #e8e8e8;
+}
+
+/* --- Teks admin/modal: terang -> gelap (aksen warna dipertebal) --- */
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.text-white, .text-slate-100) {
+  color: #1c1917;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-slate-200 {
+  color: #292524;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-slate-300 {
+  color: #44403c;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-slate-400 {
+  color: #57534e;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-slate-500 {
+  color: #78716c;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.text-amber-200, .text-amber-300, .text-amber-400) {
+  color: #b45309;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.text-emerald-200, .text-emerald-300, .text-emerald-400) {
+  color: #3f6212;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.text-sky-200, .text-sky-300, .text-sky-100) {
+  color: #0369a1;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-sky-400 {
+  color: #0284c7;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.text-red-200, .text-red-300) {
+  color: #b91c1c;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-red-400 {
+  color: #dc2626;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.text-purple-200, .text-purple-300, .text-purple-400) {
+  color: #6b21a8;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.text-pink-200, .text-pink-300, .text-pink-400) {
+  color: #be185d;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.text-rose-200, .text-rose-300) {
+  color: #be123c;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-rose-400 {
+  color: #e11d48;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.text-indigo-200, .text-indigo-300) {
+  color: #4338ca;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(.text-blue-200, .text-blue-300, .text-blue-400) {
+  color: #1d4ed8;
+}
+/* Aksen 400 yang belum diremap (label upload & judul seksi ai-form/share):
+   di atas kartu putih 400-an cerah kontrasnya <2.5:1 -> gelapkan ke 700-an. */
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-orange-400 {
+  color: #c2410c;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-violet-400 {
+  color: #6d28d9;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-teal-400 {
+  color: #0f766e;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .text-indigo-400 {
+  color: #4338ca;
+}
+/* Tombol dengan latar warna tetap putih teksnya */
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(
+    .bg-sky-600,
+    .bg-sky-500,
+    .bg-red-600,
+    .bg-red-500,
+    .bg-red-700,
+    .bg-amber-500,
+    .bg-amber-600,
+    .bg-amber-400,
+    .bg-emerald-600,
+    .bg-emerald-500,
+    .bg-rose-600,
+    .bg-rose-500,
+    .bg-pink-600,
+    .bg-violet-600,
+    .bg-violet-500,
+    .bg-teal-600,
+    .bg-teal-500,
+    .bg-purple-600,
+    .bg-indigo-600,
+    .bg-indigo-500,
+    .bg-zinc-900,
+    .bg-gradient-to-r,
+    .bg-gradient-to-tr,
+    .bg-gradient-to-t,
+    .bg-gradient-to-b
+  )
+  .text-white,
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  :is(
+    .bg-sky-600,
+    .bg-sky-500,
+    .bg-red-600,
+    .bg-red-500,
+    .bg-red-700,
+    .bg-amber-500,
+    .bg-amber-600,
+    .bg-amber-400,
+    .bg-emerald-600,
+    .bg-emerald-500,
+    .bg-rose-600,
+    .bg-rose-500,
+    .bg-pink-600,
+    .bg-violet-600,
+    .bg-violet-500,
+    .bg-teal-600,
+    .bg-teal-500,
+    .bg-purple-600,
+    .bg-indigo-600,
+    .bg-indigo-500,
+    .bg-zinc-900,
+    .bg-gradient-to-r,
+    .bg-gradient-to-tr,
+    .bg-gradient-to-t,
+    .bg-gradient-to-b
+  ).text-white {
+  color: #ffffff;
+}
+/* Kartu modal & panel admin yang memakai glass-panel ikut terang */
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .glass-panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+/* Chip dictionary & baris tabel responsif (mobile) ikut terang */
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .rb-chip {
+  background: #eef2f7;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+:is(
+    body.theme-light
+      :is(
+        #page-admin,
+        #modal-root,
+        [data-page='share'],
+        [data-page='ai-form'],
+        [data-page='siswa-baru']
+      ),
+    body.theme-light[data-page='share'],
+    body.theme-light[data-page='ai-form'],
+    body.theme-light[data-page='siswa-baru'],
+    body.theme-light[data-page='apply-full'],
+    body.theme-light[data-page='master-full']
+  )
+  .rb-chip:hover {
+  color: #1c1917;
+  border-color: rgba(106, 171, 0, 0.6);
+}
+body.theme-light .responsive-table.rt-active tr.rt-row {
+  background: #ffffff;
+  border-color: #e5e7eb;
+}
+body.theme-light .responsive-table.rt-active tr.rt-row:hover {
+  background: #f8f8f8;
+}
+body.theme-light .responsive-table.rt-active td {
+  border-bottom: 1px dashed #e5e7eb;
+}
+body.theme-light .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #00000026;
+}
+
+/* ============================================================
+   TEMA LIGHT — OVERLAY GELAP YANG SENGAJA TETAP GELAP
+   (preview dokumen share, login-gate & loading master-full)
+   Teks terang di dalamnya TETAP terang supaya terbaca.
+   ============================================================ */
+/* share.html #modal-preview (viewer dokumen fullscreen) tetap gelap */
+body.theme-light[data-page='share'] #modal-preview .bg-slate-900 {
+  background-color: #0f172a;
+}
+body.theme-light[data-page='share'] #modal-preview .bg-slate-800 {
+  background-color: #334155;
+}
+body.theme-light[data-page='share']
+  #modal-preview
+  :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400) {
+  color: #e2e8f0;
+}
+/* master-full.html #login-gate & #loading (gate login & loader) tetap gelap */
+body.theme-light[data-page='master-full'] #login-gate .text-white {
+  color: #ffffff;
+}
+body.theme-light[data-page='master-full'] #login-gate .text-slate-400 {
+  color: #94a3b8;
+}
+body.theme-light[data-page='master-full'] #login-gate .text-slate-500 {
+  color: #c7c7c7;
+}
+body.theme-light[data-page='master-full'] #loading .text-white {
+  color: #ffffff;
+}
+/* Tombol berlatarbelakang warna dengan opacity (bukan solid): teks tetap putih */
+body.theme-light[data-page='master-full'] :is(.bg-sky-600\/80, .bg-amber-600\/80).text-white,
+body.theme-light[data-page='master-full'] :is(.bg-sky-600\/80, .bg-amber-600\/80) .text-white {
+  color: #ffffff;
+}
+/* Gradient judul PT AMANAH SAKURA JAPAN (share): pink-200→white jadi gelap
+   supaya terbaca di atas header putih mode light */
+body.theme-light[data-page='share']
+  .bg-gradient-to-r.from-pink-200.to-white.bg-clip-text.text-transparent {
+  background-image: linear-gradient(to right, #be185d, #1c1917);
+}
+/* index.html bagian publik (loker/layanan): kotak bg-slate-900/70 & /60 ikut
+   terang — inline <style> index.html belum punya varian ini (kontras teks
+   yang sudah digelapkan jadi tidak terbaca di atas kotak yang tetap gelap) */
+body.theme-light #public-loker-section :is(.bg-slate-900\/70, .bg-slate-900\/60),
+body.theme-light #public-layanan-section :is(.bg-slate-900\/70, .bg-slate-900\/60) {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* ============================================================
+   TEMA LIGHT — DASHBOARD KANDIDAT (permukaan utama jadi terang,
+   kotak aksen gelap dibiarkan gelap agar tetap terbaca)
+   ============================================================ */
+body.theme-light #page-kandidat .glass-panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+/* Judul "Selamat Datang" di panel putih jadi gelap */
+body.theme-light #page-kandidat .glass-panel > h2 {
+  color: #1c1917;
+}
+body.theme-light #page-kandidat .glass-panel .bg-black\/40 {
+  background-color: #f2f2f2;
+}
+/* Kartu ID siswa di dalam panel tetap GELAP + teksnya tetap terang */
+body.theme-light #page-kandidat .glass-panel .from-slate-900 .text-white {
+  color: #ffffff;
+}
+body.theme-light #page-kandidat .glass-panel .from-slate-900 .text-slate-400 {
+  color: #94a3b8;
+}
+body.theme-light #page-kandidat .glass-panel .from-slate-900 .text-sky-300 {
+  color: #7dd3fc;
+}
+body.theme-light #page-kandidat .glass-panel .from-slate-900 .text-amber-400 {
+  color: #fbbf24;
+}
+body.theme-light #page-kandidat .glass-panel .from-slate-900 .text-emerald-400 {
+  color: #76b900;
+}
+body.theme-light #page-kandidat .bg-black\/40 {
+  background-color: #f5f5f5;
+}
+body.theme-light #page-kandidat .bg-black\/40 :is(.text-white),
+body.theme-light #page-kandidat .bg-black\/40.text-white {
+  color: #1c1917;
+}
+body.theme-light
+  #page-kandidat
+  .bg-black\/40
+  :is(.text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500) {
+  color: #44403c;
+}
+body.theme-light #page-kandidat .bg-black\/40.text-slate-300,
+body.theme-light #page-kandidat .bg-black\/40.text-slate-400 {
+  color: #44403c;
+}
+body.theme-light #page-kandidat .bg-black\/40 :is(.text-sky-400, .text-sky-300) {
+  color: #0284c7;
+}
+body.theme-light #page-kandidat .bg-black\/40 :is(.text-emerald-400, .text-emerald-300) {
+  color: #4a7500;
+}
+body.theme-light #page-kandidat .bg-black\/40 .bg-slate-800 {
+  background-color: #e5e5e5;
+}
+body.theme-light #page-kandidat .bg-sky-900\/20 {
+  background-color: #e8f6ff;
+}
+body.theme-light #page-kandidat .bg-sky-900\/20 :is(.text-sky-400, .text-sky-300) {
+  color: #0284c7;
+}
+body.theme-light #page-kandidat .bg-sky-900\/20 :is(.text-slate-200) {
+  color: #292524;
+}
+body.theme-light #page-kandidat .bg-white\/10 {
+  background-color: #ececec;
+}
+body.theme-light #page-kandidat .bg-white\/10.text-white,
+body.theme-light #page-kandidat .bg-white\/10 :is(.text-white) {
+  color: #1c1917;
+}
+body.theme-light #page-kandidat .bg-white\/10 :is(.text-sky-400) {
+  color: #0284c7;
+}
+body.theme-light #page-kandidat .bg-slate-800 {
+  background-color: #e9e9e9;
+}
+body.theme-light #page-kandidat .bg-slate-800.text-white {
+  color: #1c1917;
+}
+body.theme-light #page-kandidat .hover\:bg-slate-700:hover {
+  background-color: #d6d6d6;
+}
+body.theme-light #page-kandidat .border-slate-700 {
+  border-color: #dcdcdc;
+}
+
+/* ============================================================
+   TEMA LIGHT — HALAMAN STANDALONE (share, apply, master, AI form)
+   ============================================================ */
+/* share.html: body gelap -> terang */
+body.theme-light[data-page='share'] {
+  background-color: #f6f1f2 !important;
+  color: #1c1917 !important;
+}
+body.theme-light[data-page='share'] .glass-card {
+  background: #ffffff;
+  border-color: #e2e2e2;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
+}
+body.theme-light[data-page='share'] .skeleton {
+  background: linear-gradient(90deg, #e8e8e8 25%, #f5f5f5 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+}
+
+/* apply-full.html & master-full.html: komponen custom jadi terang */
+body.theme-light[data-page='apply-full'],
+body.theme-light[data-page='master-full'] {
+  background: #f6f1f2 !important;
+  color: #1c1917 !important;
+}
+body.theme-light[data-page='apply-full'] .glass,
+body.theme-light[data-page='master-full'] .glass {
+  background: rgba(255, 255, 255, 0.97);
+  border-color: #e2e2e2;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
+}
+body.theme-light[data-page='apply-full'] .overlay,
+body.theme-light[data-page='master-full'] .overlay {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.3));
+}
+body.theme-light[data-page='apply-full'] .sub,
+body.theme-light[data-page='apply-full'] .label,
+body.theme-light[data-page='apply-full'] .step-text,
+body.theme-light[data-page='master-full'] .sub,
+body.theme-light[data-page='master-full'] .label,
+body.theme-light[data-page='master-full'] .step-text {
+  color: #475569;
+}
+body.theme-light[data-page='apply-full'] .tip,
+body.theme-light[data-page='apply-full'] .box-title,
+body.theme-light[data-page='master-full'] .box-title,
+body.theme-light[data-page='master-full'] .file-info {
+  color: #64748b;
+}
+body.theme-light[data-page='apply-full'] .step-circle,
+body.theme-light[data-page='master-full'] .circle {
+  background: #ffffff;
+  border-color: #d6d6d6;
+  color: #57534e;
+}
+body.theme-light[data-page='apply-full'] .stepper-line,
+body.theme-light[data-page='master-full'] .stepper::before {
+  background: #d6d6d6;
+}
+body.theme-light[data-page='apply-full'] .input,
+body.theme-light[data-page='master-full'] .input {
+  background: #ffffff;
+  border-color: #d6d6d6;
+  color: #1c1917;
+}
+body.theme-light[data-page='apply-full'] .input::placeholder,
+body.theme-light[data-page='master-full'] .input::placeholder {
+  color: #9a9a9a;
+}
+body.theme-light[data-page='apply-full'] .input:disabled,
+body.theme-light[data-page='master-full'] .input:disabled {
+  background: #ececec;
+}
+body.theme-light[data-page='apply-full'] :is(.upload-card, .dynamic-box, .file-card),
+body.theme-light[data-page='master-full'] :is(.dynamic-box, .file-card) {
+  background: #f7f7f7;
+  border-color: #dcdcdc;
+}
+body.theme-light[data-page='apply-full'] .nav-bar,
+body.theme-light[data-page='master-full'] .nav-bar {
+  background: rgba(255, 255, 255, 0.96);
+  border-top-color: #e2e2e2;
+}
+body.theme-light[data-page='apply-full'] .btn-prev,
+body.theme-light[data-page='master-full'] .btn-prev {
+  background: #e9e9e9;
+  color: #44403c;
+}
+body.theme-light[data-page='apply-full'] .btn-next,
+body.theme-light[data-page='master-full'] .btn-next {
+  background: #38bdf8;
+  color: #020617;
+}
+body.theme-light[data-page='apply-full'] .file-btn,
+body.theme-light[data-page='master-full'] .file-btn {
+  background: #38bdf8;
+  color: #020617;
+}
+body.theme-light[data-page='apply-full'] .step-item.active .step-circle,
+body.theme-light[data-page='apply-full'] .step-item.completed .step-circle {
+  color: #ffffff;
+}
+body.theme-light[data-page='master-full'] .step.active .circle,
+body.theme-light[data-page='master-full'] .step.completed .circle {
+  color: #ffffff;
+}
+body.theme-light[data-page='master-full'] .step.active .circle {
+  color: #020617;
+}
+
+/* ai_form.html: body + komponen custom jadi terang */
+body.theme-light[data-page='ai-form'] {
+  background: #f6f1f2 !important;
+  color: #1c1917 !important;
+}
+body.theme-light[data-page='ai-form'] .input-micro {
+  background: #ffffff;
+  border-color: #d6d6d6;
+  color: #1c1917;
+}
+body.theme-light[data-page='ai-form'] .label-micro,
+body.theme-light[data-page='ai-form'] .section-title {
+  color: #475569;
+}
+
+/* ============================================================
+   CSS CUSTOM SITUS (diekstrak verbatim dari build asli —
+   JANGAN diubah kecuali sengaja). Dark/light, scrollbar, loader,
+   tabel responsif, sakura, rincian biaya, skip-link, marquee, dll.
+   ============================================================ */
+html {
+  --lightningcss-light: ;
+  --lightningcss-dark: initial;
+  color-scheme: dark;
+}
+body.theme-light {
+  --lightningcss-light: initial;
+  --lightningcss-dark: ;
+  color-scheme: light;
+}
+th,
+td {
+  font-variant-numeric: tabular-nums;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: 0 0;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #fff3;
+  border-radius: 10px;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family:
+    Montserrat,
+    Noto Sans JP,
+    Hiragino Kaku Gothic ProN,
+    Meiryo,
+    sans-serif;
+}
+.hidden {
+  display: none !important;
+}
+@media (width>=768px) {
+  .md\:block {
+    display: block !important;
+  }
+  .md\:inline {
+    display: inline !important;
+  }
+  .md\:inline-block {
+    display: inline-block !important;
+  }
+  .md\:flex {
+    display: flex !important;
+  }
+  .md\:grid {
+    display: grid !important;
+  }
+}
+#global-loader {
+  z-index: 9999;
+  color: #fff;
+  background: #000000fa;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.4s;
+  display: flex;
+  position: fixed;
+  inset: 0;
+}
+.link-chip {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #76b900;
+  vertical-align: middle;
+  background-color: #76b9001a;
+  border: 1px solid #76b9004d;
+  border-radius: 9999px;
+  align-items: center;
+  max-width: 150px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s;
+  display: inline-flex;
+  overflow: hidden;
+}
+.link-chip:hover {
+  background-color: #38bdf833;
+  max-width: 100%;
+}
+@media (width<=767px) {
+  .responsive-table.rt-active {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .responsive-table.rt-active thead {
+    display: none;
+  }
+  .responsive-table.rt-active,
+  .responsive-table.rt-active tbody,
+  .responsive-table.rt-active tr,
+  .responsive-table.rt-active td {
+    width: 100%;
+    display: block;
+    white-space: normal !important;
+  }
+  .responsive-table.rt-active tr.rt-row {
+    background: #00000040;
+    border: 1px solid #ffffff1a;
+    border-radius: 1rem;
+    margin-bottom: 0.85rem;
+    overflow: hidden;
+  }
+  .responsive-table.rt-active tr.rt-row:hover {
+    background: #00000040;
+  }
+  .responsive-table.rt-active td {
+    border-bottom: 1px dashed #ffffff14;
+    padding: 0.65rem 1rem !important;
+  }
+  .responsive-table.rt-active tr.rt-row td:last-child {
+    border-bottom: none;
+  }
+  .responsive-table.rt-active td[data-label] {
+    text-align: right;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    display: flex;
+  }
+  .responsive-table.rt-active td[data-label]:before {
+    content: attr(data-label);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    text-align: left;
+    flex-shrink: 0;
+    font-size: 0.62rem;
+    font-weight: 800;
+  }
+  .responsive-table.rt-active td.rt-full[data-label] {
+    text-align: left;
+    display: block;
+  }
+  .responsive-table.rt-active td.rt-full[data-label]:before {
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+  .responsive-table.rt-active td.rt-full[data-label] > * {
+    text-align: left;
+  }
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline-offset: 2px;
+  border-radius: 4px;
+  outline: 2px solid #38bdf8;
+}
+#pamfletModal {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.modal-content-pamflet {
+  object-fit: contain;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  box-shadow: 0 0 40px #000000e6;
+}
+@media (width<=768px) {
+  .header-nav-buttons .btn-mobile-compact {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.65rem;
+  }
+  #asj-header {
+    min-height: 10rem;
+    padding: 0.5rem;
+  }
+  #asj-header .relative.z-10 {
+    padding-top: 2.5rem;
+  }
+}
+@media (width<=767px) {
+  button,
+  a,
+  [role='button'],
+  input[type='file'] {
+    min-height: 44px;
+  }
+  .responsive-table.rt-active td {
+    padding: 0.5rem 0.75rem !important;
+  }
+}
+#sakura-particles {
+  z-index: 1;
+  pointer-events: none;
+}
+.sakura-petal {
+  will-change: transform;
+  background: radial-gradient(circle at 32% 30%, #fecdd3, #fb7185);
+  border-radius: 62% 38% 58% 42%/60% 55% 45% 40%;
+  animation: linear infinite sakuraFall;
+  position: absolute;
+  top: -24px;
+  box-shadow: inset -1px -1px 2px #be123c40;
+}
+@keyframes sakuraFall {
+  0% {
+    transform: translateY(-30px) rotate(0);
+  }
+  25% {
+    transform: translate(24px, 26vh) rotate(95deg);
+  }
+  50% {
+    transform: translate(-18px, 52vh) rotate(185deg);
+  }
+  75% {
+    transform: translate(22px, 78vh) rotate(275deg);
+  }
+  to {
+    transform: translateY(106vh) rotate(360deg);
+  }
+}
+@keyframes sakuraFall2 {
+  0% {
+    transform: translateY(-30px) rotate(0);
+  }
+  15% {
+    transform: translate(-34px, 16vh) rotate(120deg);
+  }
+  35% {
+    transform: translate(26px, 38vh) rotate(-60deg);
+  }
+  55% {
+    transform: translate(-24px, 58vh) rotate(210deg);
+  }
+  75% {
+    transform: translate(38px, 80vh) rotate(80deg);
+  }
+  to {
+    transform: translateY(106vh) rotate(360deg);
+  }
+}
+.rb-chip {
+  text-transform: uppercase;
+  color: #cbd5e1;
+  cursor: pointer;
+  text-align: left;
+  background: #1e293bb3;
+  border: 1px solid #64748b66;
+  border-radius: 9999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.4;
+  transition: all 0.15s;
+}
+.rb-chip:hover {
+  color: #fff;
+  border-color: #76b90099;
+}
+.rb-chip.rb-on {
+  color: #8fd400;
+  background: #5a8d0040;
+  border-color: #76b900b3;
+  box-shadow: 0 0 8px #76b90040;
+}
+.rb-star {
+  color: #fbbf24;
+  opacity: 0.55;
+  cursor: pointer;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+  font-size: 10px;
+  transition: all 0.15s;
+  display: inline-block;
+}
+.rb-star:hover {
+  opacity: 1;
+  transform: scale(1.25);
+}
+.rb-star.rb-star-saved {
+  opacity: 1;
+}
+:focus-visible {
+  outline-offset: 2px;
+  outline: 2px solid #76b900;
+}
+.skip-link {
+  z-index: 99999;
+  color: #fff;
+  background: #76b900;
+  border-radius: 0 0 0.6rem 0.6rem;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 0.15s;
+  position: fixed;
+  top: -4rem;
+  left: 1rem;
+}
+.skip-link:focus-visible {
+  top: 0;
+}
+.marquee-track {
+  white-space: nowrap;
+  flex: 1;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 24px,
+    #000 calc(100% - 24px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 24px,
+    #000 calc(100% - 24px),
+    transparent 100%
+  );
+}
+.marquee-content {
+  padding-left: 100%;
+  animation: 18s linear infinite marquee-scroll;
+  display: inline-block;
+}
+@keyframes marquee-scroll {
+  to {
+    transform: translate(-100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-content {
+    white-space: normal;
+    padding-left: 0;
+    animation: none;
+  }
+}
+div[class*='fixed\ inset-0'] {
+  overscroll-behavior: contain;
+}
+body {
+  overscroll-behavior-y: contain;
+}
+button:not(:disabled),
+[role='button']:not(:disabled) {
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  :before,
+  :after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .sakura-petal {
+    animation-duration: 12s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+/* ============================================================
+   PRINT — CV Rirekisho: FIT 1 HALAMAN A4 (fit onepage)
+   Dicetak dari modal-preview-cv (admin). Sembunyikan seluruh
+   halaman kecuali lembar CV, lalu rapikan isi tabel (font +
+   padding lebih kecil) supaya muat dalam 297mm — tidak lagi
+   pecah jadi 2-3 lembar.
+   ============================================================ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  /* Hanya modal CV yang tampil saat print; sisanya disembunyikan */
+  body > *:not(#modal-root):not(script):not(style) {
+    display: none !important;
+  }
+  #modal-root > *:not(#modal-preview-cv) {
+    display: none !important;
+  }
+
+  #modal-preview-cv {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    display: block !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+    backdrop-filter: none !important;
+    z-index: 9999 !important;
+  }
+  #modal-preview-cv > div {
+    width: 210mm !important;
+    height: 297mm !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  #cv-kertas-a4 {
+    width: 210mm !important;
+    height: 297mm !important;
+    margin: 0 !important;
+    padding: 7mm 7mm !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  #cv-kertas-a4 table {
+    width: 100% !important;
+    font-size: 9px !important;
+    page-break-inside: avoid;
+  }
+  #cv-kertas-a4 td,
+  #cv-kertas-a4 th {
+    padding: 1.5px 3px !important;
+    page-break-inside: avoid;
+  }
+  #cv-kertas-a4 img {
+    max-height: 62mm !important;
+  }
+}
+
+/* ============================================================
+   Fase 5 (2026-08-18) — style inline yang dipindah dari
+   index.html/admin.html ke sini (satu sumber CSS).
+   ============================================================ */
+
+/* ---- fade-in animasi (dulu inline di index.html & admin.html) ---- */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} /* ---- print CV preview (dulu inline di index.html & admin.html) ---- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #modal-preview-cv,
+  #modal-preview-cv * {
+    visibility: visible;
+  }
+  #modal-preview-cv {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white;
+    padding: 0 !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  .cv-table {
+    page-break-inside: auto;
+  }
+  .cv-tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+}
+.cv-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid black;
+  font-size: 11px;
+  margin-bottom: 16px;
+}
+.cv-table th,
+.cv-table td {
+  border: 1px solid black;
+  padding: 6px;
+}
+.cv-table th {
+  background-color: #f9fafb;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* ---- light theme (dulu inline HANYA di index.html; kini global) ---- */
+/* ============================================================
+   LIGHT THEME (SAKURA): kartu & tabel jadi TERANG, bukan gelap.
+   Di-scope ke section publik (loker + layanan + pill tab) supaya
+   modal & panel admin tetap seperti desain aslinya.
+   ============================================================ */
+/* --- Permukaan kartu: gelap -> putih/terang --- */
+body.theme-light #public-loker-section .bg-slate-900,
+body.theme-light #public-loker-section .bg-slate-900\/90,
+body.theme-light #public-loker-section .bg-slate-900\/80,
+body.theme-light #public-loker-section .bg-slate-900\/50,
+body.theme-light #public-layanan-section .bg-slate-900,
+body.theme-light #public-layanan-section .bg-slate-900\/90,
+body.theme-light #public-layanan-section .bg-slate-900\/80,
+body.theme-light #public-layanan-section .bg-slate-900\/50 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+body.theme-light #public-loker-section .bg-slate-800,
+body.theme-light #public-loker-section .bg-slate-800\/50,
+body.theme-light #public-loker-section .bg-slate-800\/80,
+body.theme-light #public-layanan-section .bg-slate-800,
+body.theme-light #public-layanan-section .bg-slate-800\/50,
+body.theme-light #public-layanan-section .bg-slate-800\/80 {
+  background-color: rgba(247, 236, 237, 0.95) !important;
+}
+body.theme-light #public-loker-section .bg-slate-700,
+body.theme-light #public-loker-section .bg-slate-600,
+body.theme-light #public-layanan-section .bg-slate-700,
+body.theme-light #public-layanan-section .bg-slate-600 {
+  background-color: #f1e4e5 !important;
+}
+body.theme-light #public-loker-section .bg-slate-950,
+body.theme-light #public-loker-section .bg-slate-950\/90,
+body.theme-light #public-layanan-section .bg-slate-950,
+body.theme-light #public-layanan-section .bg-slate-950\/90 {
+  background-color: #fbf6f6 !important;
+}
+body.theme-light #public-loker-section .bg-black\/30,
+body.theme-light #public-loker-section .bg-black\/40,
+body.theme-light #public-loker-section .bg-black\/50,
+body.theme-light #public-loker-section .bg-black\/60,
+body.theme-light #public-layanan-section .bg-black\/30,
+body.theme-light #public-layanan-section .bg-black\/40,
+body.theme-light #public-layanan-section .bg-black\/50,
+body.theme-light #public-layanan-section .bg-black\/60 {
+  background-color: rgba(255, 255, 255, 0.55) !important;
+}
+body.theme-light .inline-flex.bg-slate-900\/80 {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+}
+
+/* --- Border: gelap -> rose terang --- */
+body.theme-light #public-loker-section .border-slate-600,
+body.theme-light #public-loker-section .border-slate-700,
+body.theme-light #public-loker-section .border-slate-700\/50,
+body.theme-light #public-loker-section .border-slate-800,
+body.theme-light #public-layanan-section .border-slate-600,
+body.theme-light #public-layanan-section .border-slate-700,
+body.theme-light #public-layanan-section .border-slate-700\/50,
+body.theme-light #public-layanan-section .border-slate-800,
+body.theme-light .inline-flex.bg-slate-900\/80 {
+  border-color: #ebd9da !important;
+}
+
+/* --- Teks utama: terang -> gelap --- */
+body.theme-light #public-loker-section .text-white,
+body.theme-light #public-layanan-section .text-white {
+  color: #292524 !important;
+}
+body.theme-light #public-loker-section .text-slate-100,
+body.theme-light #public-layanan-section .text-slate-100 {
+  color: #292524 !important;
+}
+body.theme-light #public-loker-section .text-slate-200,
+body.theme-light #public-layanan-section .text-slate-200 {
+  color: #44403c !important;
+}
+body.theme-light #public-loker-section .text-slate-300,
+body.theme-light #public-layanan-section .text-slate-300 {
+  color: #57534e !important;
+}
+body.theme-light #public-loker-section .text-slate-400,
+body.theme-light #public-layanan-section .text-slate-400 {
+  color: #78716c !important;
+}
+body.theme-light #public-loker-section .text-slate-500,
+body.theme-light #public-layanan-section .text-slate-500 {
+  color: #a8a29e !important;
+}
+body.theme-light .inline-flex.bg-slate-900\/80 .text-slate-400 {
+  color: #78716c !important;
+}
+
+/* --- Warna aksen (heading/ikon) di atas kartu terang: pekatkan --- */
+body.theme-light #public-loker-section .text-emerald-400,
+body.theme-light #public-layanan-section .text-emerald-400 {
+  color: #047857 !important;
+}
+body.theme-light #public-loker-section .text-sky-400,
+body.theme-light #public-layanan-section .text-sky-400 {
+  color: #0369a1 !important;
+}
+body.theme-light #public-loker-section .text-amber-400,
+body.theme-light #public-layanan-section .text-amber-400 {
+  color: #b45309 !important;
+}
+body.theme-light #public-loker-section .text-pink-400,
+body.theme-light #public-layanan-section .text-pink-400 {
+  color: #be185d !important;
+}
+body.theme-light #public-loker-section .text-rose-400,
+body.theme-light #public-layanan-section .text-rose-400 {
+  color: #be123c !important;
+}
+body.theme-light #public-loker-section .text-violet-400,
+body.theme-light #public-layanan-section .text-violet-400 {
+  color: #6d28d9 !important;
+}
+body.theme-light #public-loker-section .text-red-400,
+body.theme-light #public-layanan-section .text-red-400 {
+  color: #b91c1c !important;
+}
+body.theme-light #public-loker-section .text-blue-400,
+body.theme-light #public-layanan-section .text-blue-400 {
+  color: #1d4ed8 !important;
+}
+body.theme-light #public-loker-section .text-purple-400,
+body.theme-light #public-layanan-section .text-purple-400 {
+  color: #9333ea !important;
+}
+body.theme-light #public-loker-section .text-teal-400,
+body.theme-light #public-layanan-section .text-teal-400 {
+  color: #0f766e !important;
+}
+body.theme-light #public-loker-section .text-amber-300,
+body.theme-light #public-layanan-section .text-amber-300 {
+  color: #d97706 !important;
+}
+
+/* --- Hover tombol slate di kartu terang --- */
+body.theme-light #public-loker-section .hover\:bg-slate-700:hover,
+body.theme-light #public-layanan-section .hover\:bg-slate-700:hover,
+body.theme-light #public-loker-section .hover\:bg-slate-600:hover,
+body.theme-light #public-layanan-section .hover\:bg-slate-600:hover {
+  background-color: #ece0e1 !important;
+}
+
+/* --- Tombol berwarna (hijau/biru/amber/dll): teks putih TETAP putih --- */
+body.theme-light #public-loker-section .bg-sky-600.text-white,
+body.theme-light #public-loker-section .bg-sky-500.text-white,
+body.theme-light #public-loker-section .bg-emerald-600.text-white,
+body.theme-light #public-loker-section .bg-emerald-500.text-white,
+body.theme-light #public-loker-section .bg-amber-600.text-white,
+body.theme-light #public-loker-section .bg-amber-500.text-white,
+body.theme-light #public-loker-section .bg-amber-400.text-white,
+body.theme-light #public-loker-section .bg-red-600.text-white,
+body.theme-light #public-loker-section .bg-rose-600.text-white,
+body.theme-light #public-loker-section .bg-pink-600.text-white,
+body.theme-light #public-loker-section .bg-blue-600.text-white,
+body.theme-light #public-loker-section .bg-teal-600.text-white,
+body.theme-light #public-loker-section .bg-violet-600.text-white,
+body.theme-light #public-loker-section .bg-indigo-600.text-white,
+body.theme-light #public-loker-section .bg-cyan-600.text-white,
+body.theme-light #public-loker-section .bg-orange-600.text-white,
+body.theme-light #public-loker-section .bg-green-600.text-white,
+body.theme-light #public-layanan-section .bg-sky-600.text-white,
+body.theme-light #public-layanan-section .bg-sky-500.text-white,
+body.theme-light #public-layanan-section .bg-emerald-600.text-white,
+body.theme-light #public-layanan-section .bg-emerald-500.text-white,
+body.theme-light #public-layanan-section .bg-amber-600.text-white,
+body.theme-light #public-layanan-section .bg-amber-500.text-white,
+body.theme-light #public-layanan-section .bg-amber-400.text-white,
+body.theme-light #public-layanan-section .bg-red-600.text-white,
+body.theme-light #public-layanan-section .bg-rose-600.text-white,
+body.theme-light #public-layanan-section .bg-pink-600.text-white,
+body.theme-light #public-layanan-section .bg-blue-600.text-white,
+body.theme-light #public-layanan-section .bg-teal-600.text-white,
+body.theme-light #public-layanan-section .bg-violet-600.text-white,
+body.theme-light #public-layanan-section .bg-indigo-600.text-white,
+body.theme-light #public-layanan-section .bg-cyan-600.text-white,
+body.theme-light #public-layanan-section .bg-orange-600.text-white,
+body.theme-light #public-layanan-section .bg-green-600.text-white,
+body.theme-light .inline-flex.bg-slate-900\/80 .bg-sky-600.text-white {
+  color: #fff !important;
+}
+
+/* ---- style inline admin.html (fade) — dipindah ke sini oleh _gen-partials.mjs ---- */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-in-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- style inline admin.html (print) — dipindah ke sini oleh _gen-partials.mjs ---- */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+  body * {
+    visibility: hidden;
+  }
+  #modal-preview-cv,
+  #modal-preview-cv * {
+    visibility: visible;
+  }
+  #modal-preview-cv {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white;
+    padding: 0 !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  .cv-table {
+    page-break-inside: auto;
+  }
+  .cv-tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+}
+.cv-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid black;
+  font-size: 11px;
+  margin-bottom: 16px;
+}
+.cv-table th,
+.cv-table td {
+  border: 1px solid black;
+  padding: 6px;
+}
+.cv-table th {
+  background-color: #f9fafb;
+  font-weight: bold;
+  text-align: center;
+}

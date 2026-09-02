@@ -1,0 +1,70 @@
+name: ✨ Feature Request
+description: Usulkan fitur baru atau peningkatan
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ✨ Feature Request
+        Punya ide untuk meningkatkan ASJ Portal? Bagikan di sini!
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Area mana yang terpengaruh?
+      options:
+        - Admin Panel
+        - Kandidat Dashboard
+        - AI Copilot
+        - Mail Inbox
+        - Master Data / CV
+        - Login / Auth
+        - Upload / Dokumen
+        - UI/UX
+        - Backend / API
+        - Lainnya
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Masalah yang Dihadapi
+      description: Apa masalah yang ingin diselesaikan?
+      placeholder: 'Saya kesulitan karena...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solusi yang Diusulkan
+      description: Bagaimana seharusnya fitur ini bekerja?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatif
+      description: Apakah ada cara lain yang sudah dicoba?
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Seberapa penting fitur ini?
+      options:
+        - Low (nice to have)
+        - Medium (meningkatkan produktivitas)
+        - High (critical untuk workflow)
+        - Critical (blocker)
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Informasi tambahan, contoh, atau referensi
