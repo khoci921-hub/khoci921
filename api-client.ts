@@ -53,6 +53,7 @@ const ADMIN_ACTIONS = new Set([
   'hapusJobData',
   'hapusWaTemplate',
   'kirimSatuPesanFonnte',
+  'kirimSatuTawaran',
   'rejectForm',
   'reviewForm',
   'hapusTugas',
@@ -121,6 +122,7 @@ const NETLIFY_FUNCTIONS = {
   hapusTugas: 'schedule-reminders',
   // WhatsApp (Fonnte)
   kirimTawaranMassal: 'whatsapp',
+  kirimSatuTawaran: 'whatsapp',
   kirimSatuPesanFonnte: 'whatsapp',
   simpanWaTemplate: 'whatsapp',
   hapusWaTemplate: 'whatsapp',

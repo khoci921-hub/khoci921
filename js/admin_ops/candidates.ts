@@ -1,8 +1,10 @@
-import { ALL_CANDIDATES, ALL_DB_JOBS } from '../init/state.ts';
+import { ALL_CANDIDATES, ALL_DB_JOBS, ALL_WA_TEMPLATES } from '../init/state.ts';
 import { renderAdminFull } from '../render/admin.ts';
 import { ensureAllCandidates } from '../api/candidates.ts';
 import { upsertCandidateMemory, patchFormMail } from '../api/forms.ts';
 import { registerSeamAliases } from '../core/bridge.ts';
+import { splitPesanVariants, buatVarianPesanOtomatis } from '../../shared/wa-text.ts';
+import { parseDaftarOrtuRows } from '../../shared/wa-list.ts';
 // js/admin_ops/{schedule,candidates,sysconfig,loading,migration,drive}.js.
 // ==========================================
 // LIST KANDIDAT PER JOB & UNDANGAN GRUP + CEK DATA SISWA
@@ -87,40 +89,50 @@ export async function mulaiKirimUndanganGrup() {
   }
 
   let btn = document.getElementById('btn-undang-grup');
+
+  // Loop client-side per kandidat (1 nomor = 1 panggilan server cepat +
+  // jeda acak anti-ban di browser — kirimBertahap). Jeda TIDAK boleh
+  // dijalankan server (kirimTawaranMassal): fungsi Netlify sinkron dibunuh
+  // platform ±10 dtk, jadi dengan jeda 10 dtk hanya pesan pertama yang
+  // terkirim lalu berhenti (bug 2026-09-03: WA Pintar cuma kirim 1x).
   if (btn) {
-    btn.innerHTML = window.tr('ui.sending');
+    btn.innerHTML = window.tr('ui.sending') + ' (0/' + cands.length + ')';
     btn.disabled = true;
   }
-
-  // Loop client-side per kandidat (kirimSatuPesanFonnte) diganti satu
-  // panggilan server: kirimTawaranMassal (whatsapp.ts). Jeda antar pesan
-  // dikirim sebagai parameter `interval` supaya pacing user dihormati.
-  // Pesan default server = "gabung ke Grup Resmi" (sama seperti dulu).
   try {
-    const res = await window.callAPI('kirimTawaranMassal', [
-      { candidates: cands, jobCode: jobCode, linkGrup: linkGrup, interval: interval },
-    ]);
-    const results = (res && res.results) || [];
+    const results = await kirimBertahap({
+      list: cands,
+      jobCode: jobCode,
+      linkGrup: linkGrup,
+      interval: interval,
+      onProgress: (done, total) => {
+        if (btn) btn.innerHTML = window.tr('ui.sending') + ' (' + done + '/' + total + ')';
+      },
+    });
     const successCount = results.filter((r) => r.success).length;
-    window.showToast(window.tr('ui.toast_invites_done_n').replace('{n}', successCount), 'success');
+    window.showToast(
+      window.tr('ui.toast_invites_done_n').replace('{n}', String(successCount)),
+      'success',
+    );
   } catch (e) {
     window.showToast(
       window.tr('ui.toast_invite_send_failed') + (e && e.message ? e.message : e),
       'error',
     );
-  }
-
-  if (btn) {
-    btn.innerHTML = window.tr('ui.start_send_invite');
-    btn.disabled = false;
+  } finally {
+    if (btn) {
+      btn.innerHTML = window.tr('ui.start_send_invite');
+      btn.disabled = false;
+    }
   }
 }
 
 // ==========================================
 // UNDANGAN GRUP KELAS (orang tua/wali) — Opsi A: tanpa ubah DB.
 // Admin menempel daftar "Nama|628xxx" (1 baris per orang tua), isi link grup
-// + jeda, lalu kirim via action kirimTawaranMassal yang SUDAH ADA (anti-ban:
-// tiap orang dapat PESAN berisi link undangan, bukan add anggota manual).
+// + jeda, lalu kirim bertahap per nomor (kirimSatuTawaran via kirimBertahap —
+// anti-ban: tiap orang dapat PESAN berisi link undangan, bukan add anggota
+// manual; pacing dijalankan browser supaya tidak kena timeout Netlify).
 // ==========================================
 
 // Template default pesan undangan kelas (contoh pesan ortu yang dipakai admin,
@@ -135,54 +147,118 @@ const DEFAULT_PESAN_UNDANGAN_KELAS = [
   'Terima kasih atas perhatian dan kerja samanya.',
 ].join('\n');
 
-// Parse daftar tempelan "Nama|628xxx" → [{nama, wa}]. Terima pemisah |, tab,
-// titik koma, atau nomor di akhir baris tanpa separator. Baris tanpa nomor
-// valid (gate 628… 12-13 digit) dihitung invalid & dikeluarkan.
+// Parse daftar tempelan → [{nama, wa}]: format lama "Nama|628xxx" (pemisah
+// |/tab/;) ATAU nomor di akhir baris ATAU tempelan daftar anggota WhatsApp
+// ("1. NAMA +62 831-9187-1783"). Nomor internasional eksplisit ("+81 …",
+// "+65 …") sah untuk daftar undangan ini — hanya untuk data KANDIDAT gate
+// 628… tetap berlaku (shared/wa-rules.ts). Baris tanpa nomor valid dihitung
+// invalid & dikeluarkan. SUMBER KEBENARAN parsing di shared/wa-list.ts
+// (parseDaftarOrtuRows) — di-unit-test di sana.
 export function parseDaftarOrtu(text) {
-  const list = [];
-  let invalid = 0;
-  String(text || '')
-    .split(/\r?\n/)
-    .forEach((raw) => {
-      const line = raw.trim();
-      if (!line) return;
-      let nama = '';
-      let waRaw = '';
-      const sep = line.search(/[|\t;]/);
-      if (sep !== -1) {
-        nama = line.slice(0, sep).trim();
-        waRaw = line.slice(sep + 1).trim();
-      } else {
-        const m = line.match(/^(.*?)(\d{9,15})$/);
-        if (!m) {
-          invalid += 1;
-          return;
-        }
-        nama = m[1].trim();
-        waRaw = m[2];
-      }
-      const wa = window.normalizeWaInput
-        ? window.normalizeWaInput(waRaw)
-        : waRaw.replace(/\D/g, '');
-      const ok = window.isValidWaInput ? window.isValidWaInput(wa) : /^628\d{9,11}$/.test(wa);
-      if (!ok || !wa) {
-        invalid += 1;
-        return;
-      }
-      list.push({ nama: nama || 'Orang Tua/Wali', wa });
-    });
-  return { list, invalid };
+  return parseDaftarOrtuRows(text);
 }
 
 // Pisahkan beberapa VARIAN pesan (dipisah baris `---`). Backend mengirim
 // varian BERGILIRAN per penerima — tiap orang tua dapat pesan berbeda
-// (anti-ban pesan identik massal). Dipakai preview di sini, logika kirim
-// ada di actions-wa.js (handleKirimTawaranMassal).
-export function parseVarianPesan(tpl) {
-  return String(tpl || '')
-    .split(/^---\s*$/m)
-    .map((s) => s.trim())
-    .filter(Boolean);
+// (anti-ban pesan identik massal). Dipakai preview di sini; SUMBER KEBENARAN
+// TUNGGAL parsing di shared/wa-text.ts (splitPesanVariants, dipakai juga
+// backend actions-wa). Nama lama parseVarianPesan dipertahankan utk seam
+// window.* (render/admin + partials) — jangan definisikan parsing ulang.
+export const parseVarianPesan = splitPesanVariants;
+
+// ==========================================
+// KIRIM BERTAHAP (pacing di BROWSER, jeda acak anti-ban)
+// ==========================================
+// 1 nomor = 1 panggilan server `kirimSatuTawaran` yang cepat & stateless
+// (<2 dtk) — tidak pernah kena timeout platform Netlify. Jeda antar nomor
+// dijalankan DI SINI (browser) dengan nilai acak `interval` s.d.
+// `interval + 50%` (min +2 dtk) supaya pola kirim tidak seragam & tidak pernah
+// lebih cepat dari input admin.
+//
+// Kenapa bukan kirimTawaranMassal: versi massal menidurkan interval DI DALAM
+// SATU invokasi fungsi Netlify. Fungsi sinkron Netlify dibunuh platform
+// setelah ~10 dtk (default; maks 26 dtk) — dengan jeda default 10 dtk hanya
+// pesan pertama yang sempat terkirim lalu proses mati (bug 2026-09-03: WA
+// Pintar cuma kirim 1x, abis itu berhenti).
+
+// Fallback template wa_templates (aturan sama dengan backend kirimTawaranMassal:
+// nama mengandung grup/undang) dipakai saat customMessage kosong.
+export function templateWaFallback() {
+  const found = (ALL_WA_TEMPLATES || []).find((r) => {
+    const n = String((r && r.nama) || '').toLowerCase();
+    return n.includes('grup') || n.includes('undang');
+  });
+  return found && found.isi ? String(found.isi) : null;
+}
+
+// Tidur acak: interval + Math.random() × (50% interval, minimal 2 dtk).
+export function sleepAcak(interval) {
+  const base = (Number(interval) > 0 ? Number(interval) : 10) * 1000;
+  const jitter = Math.floor(Math.random() * Math.max(2000, Math.round(base / 2)));
+  return new Promise((resolve) => setTimeout(resolve, base + jitter));
+}
+
+// Loop kirim per penerima. `list` = [{wa, nama}]. Mengembalikan array hasil
+// per penerima {wa, nama, success, error} — kegagalan satu nomor TIDAK
+// menghentikan sisa daftar. onProgress(done, total, { menungguRateLimit })
+// dipanggil tiap nomor.
+//
+// RATE LIMIT (FONNTE_ACTIONS = 2/menit per admin di handlers.ts): saat server
+// membalas { rateLimited: true, retryAfter } — nomor yang SAMA diulang setelah
+// `retryAfter + 1` dtk (maks 3 percobaan), jadi batch tetap terkirim SEMUA
+// dengan pace ~1 pesan/30 dtk, bukan gagal diam-diam di nomor ke-3.
+export async function kirimBertahap(opts) {
+  const list = (opts && opts.list) || [];
+  const jobCode = String((opts && opts.jobCode) || '');
+  const linkGrup = String((opts && opts.linkGrup) || '');
+  const interval = Number((opts && opts.interval) || 10);
+  const customMessage = String((opts && opts.customMessage) || '');
+  const onProgress = (opts && opts.onProgress) || null;
+  // Resolve template fallback SEKALI per batch (bukan per nomor).
+  const templateIsi = templateWaFallback();
+  const results = [];
+  for (let i = 0; i < list.length; i += 1) {
+    const c = list[i] || {};
+    const wa = String(c.wa || '').trim();
+    const nama = String(c.nama || 'Kandidat');
+    // any: respons callAPI bisa { success, error } biasa ATAU { success:false,
+    // rateLimited:true, retryAfter } dari rate limiter (handlers.ts).
+    let res = { success: false, error: 'Nomor WA tidak valid.', rateLimited: false, retryAfter: 0 };
+    if (wa) {
+      // Ulangi nomor yang sama saat server minta jeda (rate limit) —
+      // tunggu retryAfter + 1 dtk, maks 3 percobaan per nomor.
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        res = await window.callAPI('kirimSatuTawaran', [
+          { wa: wa, nama: nama, index: i, jobCode: jobCode, linkGrup: linkGrup, customMessage: customMessage, templateIsi: templateIsi },
+        ]);
+        if (!res || !res.rateLimited) break;
+        const wait = Math.max(Number(res.retryAfter) || 60, 1) + 1;
+        if (onProgress) {
+          try {
+            onProgress(i + 1, list.length, { menungguRateLimit: true, wait: wait });
+          } catch (e) {
+            /* progress opsional */
+          }
+        }
+        await new Promise((resolve) => setTimeout(resolve, wait * 1000));
+      }
+    }
+    results.push({
+      wa: wa,
+      nama: nama,
+      success: !!(res && res.success),
+      error: (res && res.error) || null,
+    });
+    if (onProgress) {
+      try {
+        onProgress(i + 1, list.length);
+      } catch (e) {
+        /* progress opsional */
+      }
+    }
+    if (i < list.length - 1) await sleepAcak(interval);
+  }
+  return results;
 }
 
 export function bukaModalUndanganKelas() {
@@ -229,6 +305,42 @@ export function previewUndanganKelas() {
       .replace(/\{link_grup\}/g, link || 'https://chat.whatsapp.com/...');
   }
 }
+// ==========================================
+// AUTO-VARIAN ANTI-BAN — ubah 1 template jadi 2-4 variasi pembuka/penutup
+// (pesan asli tetap varian #1, isi/link/job TIDAK diubah). Dipicu tombol di
+// modal (onclick generateVarianOtomatisKelas) — lalu preview di-refresh.
+// ==========================================
+export function generateVarianOtomatisKelas() {
+  const ta = document.getElementById('input-pesan-kelas');
+  const tpl = ta ? String(ta.value || '') : '';
+  const existing = splitPesanVariants(tpl);
+  if (existing.length > 1) {
+    window.showToast(
+      window.tr('ui.autovarian_exists').replace('{n}', String(existing.length)),
+      'warning',
+    );
+    return;
+  }
+  const daftarEl = document.getElementById('input-daftar-ortu');
+  const list = parseDaftarOrtuRows(daftarEl ? daftarEl.value : '').list;
+  // Ideal: tiap penerima dapat varian unik; otomatis maks 4 variasi total.
+  const target = Math.min(Math.max(list.length, 2), 4);
+  const variants = buatVarianPesanOtomatis(tpl, target);
+  if (!variants.length) {
+    window.showToast(window.tr('ui.toast_msg_empty'), 'error');
+    return;
+  }
+  if (variants.length < 2) {
+    window.showToast(window.tr('ui.toast_no_valid_wa'), 'error');
+    return;
+  }
+  ta.value = variants.join('\n---\n');
+  previewUndanganKelas();
+  window.showToast(
+    window.tr('ui.autovarian_ok').replace('{n}', String(variants.length)),
+    'success',
+  );
+}
 
 export async function kirimUndanganKelas() {
   const daftarEl = document.getElementById('input-daftar-ortu');
@@ -266,26 +378,41 @@ export async function kirimUndanganKelas() {
     return;
 
   const btn = document.getElementById('btn-undang-kelas');
-  btn.innerHTML = window.tr('ui.sending');
+  btn.innerHTML = window.tr('ui.sending') + ' (0/' + list.length + ')';
   btn.disabled = true;
   try {
-    const res = await window.callAPI('kirimTawaranMassal', [
-      {
-        candidates: list,
-        jobCode: '',
-        linkGrup: linkGrup,
-        interval: interval,
-        customMessage: pesan,
+    const results = await kirimBertahap({
+      list: list,
+      jobCode: '',
+      linkGrup: linkGrup,
+      interval: interval,
+      customMessage: pesan,
+      onProgress: (done, total, info) => {
+        if (info && info.menungguRateLimit) {
+          btn.innerHTML =
+            window.tr('ui.sending_wait_rl').replace('{s}', String(info.wait || '')) +
+            ' (' +
+            done +
+            '/' +
+            total +
+            ')';
+        } else {
+          btn.innerHTML = window.tr('ui.sending') + ' (' + done + '/' + total + ')';
+        }
       },
-    ]);
-    const results = (res && res.results) || [];
+    });
     const ok = results.filter((r) => r.success).length;
     try {
       localStorage.setItem('asj_link_grup_kelas', linkGrup);
     } catch (e) {
       /* private mode */
     }
-    window.showToast(window.tr('ui.toast_invites_done_n').replace('{n}', String(ok)), 'success');
+    const gagal = results.length - ok;
+    window.showToast(
+      window.tr('ui.toast_invites_done_n').replace('{n}', String(ok)) +
+        (gagal > 0 ? window.tr('ui.toast_invites_done_failed_n').replace('{n}', String(gagal)) : ''),
+      gagal > 0 ? 'warning' : 'success',
+    );
   } catch (e) {
     window.showToast(
       window.tr('ui.toast_invite_send_failed') + (e && e.message ? e.message : e),
@@ -365,5 +492,6 @@ registerSeamAliases({
   parseVarianPesan,
   bukaModalUndanganKelas,
   previewUndanganKelas,
+  generateVarianOtomatisKelas,
   kirimUndanganKelas,
 });

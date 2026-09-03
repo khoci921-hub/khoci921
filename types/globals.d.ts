@@ -112,6 +112,7 @@ interface Window {
   formatInputWA: any;
   formatPendidikanTingkat: any;
   gateLogin: any;
+  generateVarianOtomatisKelas: any;
   generateWawancaraModelAdmin: any;
   getDirectDownloadUrl: any;
   getHighResImage: any;

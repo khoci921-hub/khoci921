@@ -88,6 +88,7 @@ const ACTION_HANDLERS = {
   simpanWaTemplate: wa.handleSimpanWaTemplate,
   hapusWaTemplate: wa.handleHapusWaTemplate,
   kirimSatuPesanFonnte: wa.handleKirimSatuPesanFonnte,
+  kirimSatuTawaran: wa.handleKirimSatuTawaran,
   kirimTawaranMassal: wa.handleKirimTawaranMassal,
   // Konfigurasi sistem
   updateSysConfig: config.handleUpdateSysConfig,
@@ -148,6 +149,6 @@ const AI_ACTIONS = new Set([
   'processUploadDoc',
   'generateWawancaraModel',
 ]);
-const FONNTE_ACTIONS = new Set(['kirimSatuPesanFonnte', 'kirimTawaranMassal']);
+const FONNTE_ACTIONS = new Set(['kirimSatuPesanFonnte', 'kirimSatuTawaran', 'kirimTawaranMassal']);
 
 export { ACTION_HANDLERS, LOGIN_ACTIONS, AI_ACTIONS, FONNTE_ACTIONS };

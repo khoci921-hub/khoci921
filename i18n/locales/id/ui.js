@@ -136,6 +136,12 @@ export const ui = {
     message_preview: 'PRATINJAU PESAN PERTAMA',
     list_preview_n: '{n} orang terbaca',
     variant_count_n: '{n} varian pesan (bergiliran per penerima)',
+    autovarian_btn: 'Auto-Varian Anti-Ban',
+    autovarian_hint:
+      'Buat 2-4 variasi pembuka/penutup dari template ini — dipisah baris ',
+    autovarian_hint2: ' (pesan asli tetap varian #1, isi & link tidak berubah).',
+    autovarian_ok: 'Auto-varian: {n} pesan dibuat — pesan asli tetap varian #1.',
+    autovarian_exists: 'Template sudah punya {n} varian — biarkan atau edit manual.',
     toast_invalid_rows_n: '{n} baris tidak valid (format Nama|628xxx) — dikeluarkan.',
     toast_no_valid_wa: 'Tidak ada nomor WA valid untuk dikirim.',
     toast_confirm_send_n:
@@ -397,6 +403,7 @@ export const ui = {
     searching_data: 'Mencari Data…',
     send_wa_call: 'Kirim WA Panggilan',
     sending: 'Mengirim…',
+    sending_wait_rl: 'Menunggu jeda server… {s} dtk',
     confirm_delete_mail: 'Hapus data lamaran ini secara permanen?',
     delete_mail: 'Hapus lamaran',
     delete_selected_mail: 'Hapus Terpilih',
@@ -474,6 +481,7 @@ export const ui = {
     toast_group_link_required: 'Link Grup wajib diisi!',
     toast_invite_send_failed: 'Gagal mengirim undangan: ',
     toast_invites_done_n: 'Selesai! Berhasil memproses {n} undangan.',
+    toast_invites_done_failed_n: ' (gagal {n})',
     toast_item_exists: 'Item sudah ada di daftar!',
     toast_load_data_failed: 'Gagal memuat Data. Coba lagi.',
     toast_load_data_failed_prefix: 'Gagal memuat data: ',

@@ -12,6 +12,7 @@
 // (i18n + api-client) dan mendaftarkan alias seam HTML↔JS TERPUSAT via
 // registerSeamAliases — bukan window.X = X per baris.
 import { registerSeamAliases } from '../core/bridge.ts';
+import { withRetry } from '../core/retry.ts';
 
 // LANG lokal di-rename jadi SHARE_LANG supaya tidak bentrok dengan
 // `const LANG` global dari i18n.js (yang dimuat sebagai satu sumber tr()).
@@ -90,19 +91,6 @@ function shareToast(msg, type) {
   document.body.appendChild(d);
   setTimeout(function() { d.style.opacity = '0'; d.style.transform = 'translate(-50%,-10px)'; }, 3000);
   setTimeout(function() { d.remove(); }, 3500);
-}
-
-// Retry wrapper
-function withRetry(fn, maxAttempts, delayMs) {
-  maxAttempts = maxAttempts || 2;
-  delayMs = delayMs || 2000;
-  return function attempt() {
-    return fn().catch(function(err) {
-      if (maxAttempts <= 1) throw err;
-      maxAttempts--;
-      return new Promise(function(resolve) { setTimeout(resolve, delayMs); }).then(attempt);
-    });
-  };
 }
 
 let currentLang = localStorage.getItem('asj_lang') === 'jp' ? 'jp' : 'id';
@@ -477,7 +465,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     const res = await withRetry(function() {
       return fetch('/api/share-data?job=' + encodeURIComponent(jobCode));
-    }, 2, 2000)();
+    }, 2, 2000);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Terjadi kesalahan saat mengambil data.');
 

@@ -11,6 +11,9 @@
 // (i18n + api-client) dan mendaftarkan alias seam HTML↔JS TERPUSAT via
 // registerSeamAliases — bukan window.X = X per baris.
 import { registerSeamAliases } from '../core/bridge.ts';
+import { withRetry } from '../core/retry.ts';
+import { escapeHtml } from '../core/html.ts';
+import { base64ToBlob, downscaleScanImage } from '../core/file.ts';
 import '../init/util.ts';
 import { uploadToCloudinary } from '../cloudinary.ts';
 
@@ -193,16 +196,6 @@ function setByPath(target, path, value) {
   });
   cursor[keys[keys.length - 1]] = value;
 }
-
-function escapeHtml(value) {
-  return String(value === undefined || value === null ? '' : value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
 function mergeCandidateData(current, incoming) {
   if (Array.isArray(incoming)) {
     var currentArray = Array.isArray(current) ? current : [];
@@ -413,23 +406,6 @@ function jalankanAutoFill(targetWa) {
 // satu kali jalan di halaman pertama yang dibuka user, bukan hanya ai_form.
 // Alasan tidak via service worker: SW tidak punya akses localStorage.
 // Di sini cukup fallback defensif kalau pwa.js belum termuat.
-async function withRetry(fn, maxAttempts, delayMs) {
-  maxAttempts = maxAttempts || 2;
-  delayMs = delayMs || 2000;
-  var lastErr;
-  for (var i = 0; i < maxAttempts; i++) {
-    try {
-      return await fn();
-    } catch (err) {
-      lastErr = err;
-      if (i < maxAttempts - 1) {
-        await new Promise(function(resolve) { setTimeout(resolve, delayMs); });
-      }
-    }
-  }
-  throw lastErr;
-}
-
 export function initApp() {
   $('logoAsj').src = urlLogo;
   // Terjemahkan label statis sesuai bahasa terpilih (asj_lang).
@@ -1001,69 +977,6 @@ export function compressImage(event) {
   };
 }
 
-// Downscale scan gambar (foto sertifikat JFT/SSW) saat upload — canvas
-// max 800px, jpeg q0.8, supaya byte Storage kecil selamanya. Non-gambar
-// (pdf) / gagal-decode (HEIC/korup) / tak lebih kecil → base64 asli.
-function downscaleScanImage(file, maxWidth, quality, callback) {
-  var reader = new FileReader();
-  reader.onerror = function () {
-    callback({ data: '', name: file.name, mime: file.type || 'application/octet-stream' });
-  };
-  reader.onload = function (e) {
-    // @ts-expect-error JS→TS migration
-    var asli = e.target.result.split(',')[1];
-    if (
-      !file.type ||
-      !file.type.startsWith('image/') ||
-      file.type === 'image/svg+xml' ||
-      file.type === 'image/gif'
-    ) {
-      return callback({
-        data: asli,
-        name: file.name,
-        mime: file.type || 'application/octet-stream',
-      });
-    }
-    var img = new Image();
-    img.onload = function () {
-      var canvas = document.createElement('canvas'),
-        ctx = canvas.getContext('2d');
-      var w = img.width,
-        h = img.height,
-        MAX = maxWidth || 800;
-      if (w > MAX) {
-        h = Math.round((h * MAX) / w);
-        w = MAX;
-      }
-      canvas.width = w;
-      canvas.height = h;
-      ctx.drawImage(img, 0, 0, w, h);
-      var dataUrl = canvas.toDataURL('image/jpeg', quality || 0.8);
-      var b64 = dataUrl.split(',')[1];
-      var approxBytes = Math.floor((b64.length / 4) * 3);
-      if (!b64 || approxBytes >= file.size)
-        return callback({
-          data: asli,
-          name: file.name,
-          mime: file.type || 'application/octet-stream',
-        });
-      callback({
-        data: b64,
-        name: String(file.name || 'scan').replace(/\.[^/.]+$/, '') + '.jpg',
-        mime: 'image/jpeg',
-      });
-    };
-    // FIX: gambar image/ tapi gagal decode (HEIC/korup) → pakai asli,
-    // jangan menggantung status "Membaca…"
-    img.onerror = function () {
-      callback({ data: asli, name: file.name, mime: file.type || 'application/octet-stream' });
-    };
-    // @ts-expect-error JS→TS migration
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
 export function handleDocUpload(event, type) {
   var file = event.target.files[0];
   if (!file) return;
@@ -1104,18 +1017,6 @@ export function handleDocUpload(event, type) {
     statusEl.innerHTML = '<i class="fas fa-check-circle"></i> File: ' + hasil.name;
     saveToLocal();
   });
-}
-
-function base64ToBlob(base64, mime) {
-  var byteCharacters = atob(base64);
-  var byteArrays = [];
-  for (var offset = 0; offset < byteCharacters.length; offset += 512) {
-    var slice = byteCharacters.slice(offset, offset + 512);
-    var byteNumbers = new Array(slice.length);
-    for (var i = 0; i < slice.length; i++) byteNumbers[i] = slice.charCodeAt(i);
-    byteArrays.push(new Uint8Array(byteNumbers));
-  }
-  return new Blob(byteArrays, { type: mime });
 }
 
 async function uploadFilesDirectlyBase64(filesObj, folder) {

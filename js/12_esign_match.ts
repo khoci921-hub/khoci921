@@ -1,6 +1,7 @@
 import { ALL_CANDIDATES, currentKandidatWa, isAdmin, isKandidat } from './init/state.ts';
 import { ensureAllCandidates, buatQrDataUrl } from './api/candidates.ts';
 import { registerSeamAliases } from './core/bridge.ts';
+import { kirimBertahap } from './admin_ops/candidates.ts';
 // ESM (Fase 3 langkah 12): modul ES — alias window.* di bridge bawah utk
 // HTML onclick (bukaModalTtd, bukaLayarCanvas, clearFsCanvas, saveFsCanvas,
 // submitDataEsignFull, jalankanMatchmaking, kirimTawaranMassal), onclick
@@ -535,33 +536,43 @@ export async function kirimTawaranMassal() {
   // ReferenceError tiap klik "Kirim Penawaran". Ganti dengan origin + root path,
   // pola sama dengan shareLinkFor() di 05_render.js.
   let linkPortal = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
-  // Loop client-side per kandidat (kirimSatuPesanFonnte + jeda 4 detik)
-  // diganti 2026-08-09 dengan satu panggilan server: kirimTawaranMassal
-  // (whatsapp.ts) yang mengirim berurutan dengan jeda 2 detik per kandidat.
+  // Loop client-side per kandidat (kirimBertahap: 1 nomor = 1 panggilan
+  // server cepat + jeda acak anti-ban di browser). Jeda TIDAK boleh
+  // dijalankan server (kirimTawaranMassal): fungsi Netlify sinkron dibunuh
+  // platform ±10 dtk, jadi hanya pesan pertama yang terkirim lalu berhenti
+  // (bug 2026-09-03: kirim massal cuma 1x). Pacing user tetap dihormati.
   let msg = `Halo Kak {nama} 👋\n\nBerdasarkan kecocokan data Anda di sistem ASJ, kami ingin menawarkan *Lowongan Kerja Baru* yang sangat sesuai untuk Anda!\n\nKode Job: *{job_code}*\n\nJika Kakak tertarik, silakan segera login ke Dashboard dan lamar pekerjaan ini di:\n🔗 {link_grup}\n\nSemangat! 🇯🇵`;
 
   try {
-    const res = await window.callAPI('kirimTawaranMassal', [
-      {
-        candidates: matchedCandidates,
-        jobCode: currentMatchJobCode,
-        linkGrup: linkPortal,
-        customMessage: msg,
+    const results = await kirimBertahap({
+      list: matchedCandidates,
+      jobCode: currentMatchJobCode,
+      linkGrup: linkPortal,
+      interval: 5,
+      customMessage: msg,
+      onProgress: (done, total, info) => {
+        const label = info && info.menungguRateLimit
+          ? window.tr('ui.sending_wait_rl').replace('{s}', String(info.wait || ''))
+          : window.tr('ui.sending');
+        btn.innerHTML =
+          '<i class="fas fa-spinner fa-spin mr-1"></i> ' + label + ' (' + done + '/' + total + ')';
       },
-    ]);
-    const results = (res && res.results) || [];
+    });
     const successCount = results.filter((r) => r.success).length;
-    window.showToast(window.tr('ui.toast_offer_sent_n').replace('{n}', successCount), 'success');
+    window.showToast(
+      window.tr('ui.toast_offer_sent_n').replace('{n}', String(successCount)),
+      'success',
+    );
   } catch (e) {
     window.showToast(
       window.tr('ui.toast_offer_send_failed') + (e && e.message ? e.message : e),
       'error',
     );
+  } finally {
+    btn.innerHTML = window.tr('ui.send_offer_all');
+    btn.disabled = false;
+    document.getElementById('modal-matchmaking').classList.add('hidden');
   }
-
-  btn.innerHTML = window.tr('ui.send_offer_all');
-  btn.disabled = false;
-  document.getElementById('modal-matchmaking').classList.add('hidden');
 }
 
 // BRIDGE ESM → classic (bundel): alias window.* utk HTML onclick

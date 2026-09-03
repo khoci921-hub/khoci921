@@ -1,20 +1,7 @@
 import { ALL_CANDIDATES, currentKandidatName, currentKandidatWa } from '../init/state.ts';
 import { ensureAllCandidates } from '../api/candidates.ts';
+import { withRetry } from '../core/retry.ts';
 import { registerSeamAliases } from '../core/bridge.ts';
-
-// Retry helper
-async function withRetry(fn, maxAttempts, delayMs) {
-  maxAttempts = maxAttempts || 2;
-  delayMs = delayMs || 2000;
-  var lastErr;
-  for (var i = 0; i < maxAttempts; i++) {
-    try { return await fn(); } catch (err) {
-      lastErr = err;
-      if (i < maxAttempts - 1) await new Promise(r => setTimeout(r, delayMs));
-    }
-  }
-  throw lastErr;
-}
 
 // ==========================================
 // SIMULATOR WAWANCARA VIP — latihan wawancara kandidat dengan AI Jeklin

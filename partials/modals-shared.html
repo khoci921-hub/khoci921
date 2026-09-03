@@ -451,6 +451,10 @@
            <div>
                <label class="block text-[10px] font-bold text-emerald-400 uppercase mb-1"><i class="fas fa-comment-dots mr-1"></i><span data-lang="ui.message_label"> TEMPLATE PESAN</span></label>
                <textarea id="input-pesan-kelas" rows="9" oninput="previewUndanganKelas()" class="w-full p-2.5 rounded-lg bg-black/60 border border-slate-700 text-sm text-white outline-none focus:border-emerald-500 leading-relaxed"></textarea>
+               <div class="flex items-center gap-2 mt-2 flex-wrap">
+                   <button type="button" onclick="generateVarianOtomatisKelas()" title="Buat variasi pembuka/penutup otomatis" class="text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 transition"><i class="fas fa-wand-magic-sparkles mr-1"></i><span data-lang="ui.autovarian_btn">Auto-Varian Anti-Ban</span></button>
+                   <span class="text-[9px] text-slate-500"><span data-lang="ui.autovarian_hint">Buat 2-4 variasi pembuka/penutup dari template ini — dipisah baris </span><b class="text-slate-300">---</b><span data-lang="ui.autovarian_hint2"> (pesan asli tetap varian #1, isi &amp; link tidak berubah).</span></span>
+               </div>
                <p class="text-[9px] text-slate-500 mt-1"><span data-lang="ui.message_hint">Placeholder: </span><b>{nama}</b> <span data-lang="ui.message_hint2">= nama siswa, </span><b>{link_grup}</b> <span data-lang="ui.message_hint3">= link grup di atas.</span></p>
            </div>
            <div class="bg-black/40 border border-slate-700 rounded-xl p-3">

@@ -7,7 +7,7 @@
 // identik massal berisiko kena banned Fonnte/WA.
 // ==========================================
 import { describe, it, expect } from 'vitest';
-import { buildPesanTawaranMassal } from './actions-wa';
+import { buildPesanTawaranMassal, splitPesanVariants, waKirim } from './actions-wa';
 
 const V = [
   'Pesan A untuk {nama} ({link_grup})',
@@ -85,5 +85,77 @@ describe('buildPesanTawaranMassal — varian pesan bergilir (anti-ban)', () => {
   it('varian kosong (hanya pemisah/baris kosong) diperlakukan seperti tidak ada varian', () => {
     // parse di handler memakai .filter(Boolean) — helper menerima array bersih.
     expect(buildPesanTawaranMassal([], null, 'Budi', '', 'https://g', 0)).toContain('Halo Budi!');
+  });
+});
+
+describe('splitPesanVariants — parsing varian `---` (shared massal & kirimSatuTawaran)', () => {
+  it('pisah multi varian + buang baris kosong & trim spasi', () => {
+    expect(splitPesanVariants('Varian A\n---\n\n   Varian B  \n')).toEqual(['Varian A', 'Varian B']);
+  });
+
+  it('tanpa pemisah → satu varian utuh (baris baru dalam pesan dipertahankan)', () => {
+    expect(splitPesanVariants('Satu pesan\nmulti baris')).toEqual(['Satu pesan\nmulti baris']);
+  });
+
+  it('kosong / hanya pemisah → array kosong (fallback template/default)', () => {
+    expect(splitPesanVariants('')).toEqual([]);
+    expect(splitPesanVariants('---')).toEqual([]);
+  });
+});
+
+describe('kirimSatuTawaran — komposisi pesan per nomor (murni, tanpa network)', () => {
+  // handleKirimSatuTawaran = splitPesanVariants(customMessage) +
+  // buildPesanTawaranMassal(...) + 1 kirim Fonnte. Bagian murni ini memastikan
+  // pesan penerima ke-i (index) identik dengan semantik kirimTawaranMassal —
+  // varian bergilir per penerima + placeholder per penerima.
+  const MSG = 'V1 utk {nama} ({link_grup})\n---\nV2 utk {nama} ({link_grup})';
+
+  it('penerima ke-0 dapat varian 1, penerima ke-1 dapat varian 2 (placeholder per nama)', () => {
+    const variants = splitPesanVariants(MSG);
+    expect(variants).toHaveLength(2);
+    expect(buildPesanTawaranMassal(variants, null, 'Budi', '', 'https://g', 0)).toBe(
+      'V1 utk Budi (https://g)',
+    );
+    expect(buildPesanTawaranMassal(variants, null, 'Siti', '', 'https://g', 1)).toBe(
+      'V2 utk Siti (https://g)',
+    );
+  });
+
+  it('customMessage kosong + templateIsi dikirim frontend → pakai template (bukan default)', () => {
+    const variants = splitPesanVariants('');
+    const tpl = 'Yth. {nama} — undangan grup: {link_grup} (job {job_code})';
+    expect(buildPesanTawaranMassal(variants, tpl, 'Andi', 'TG9', 'https://g', 2)).toBe(
+      'Yth. Andi — undangan grup: https://g (job TG9)',
+    );
+  });
+});
+
+describe('waKirim — normalisasi NOMOR KIRIM (intl dari undangan grup ≠ gate kandidat)', () => {
+  it('0xx → 62xx', () => {
+    expect(waKirim('081234567890')).toBe('6281234567890');
+    expect(waKirim('085713545023')).toBe('6285713545023');
+  });
+
+  it('8xx domestik pendek (≤11 digit) → 628xx', () => {
+    expect(waKirim('81234567890')).toBe('6281234567890');
+  });
+
+  it('62… / 628… sudah baku → tetap', () => {
+    expect(waKirim('6281234567890')).toBe('6281234567890');
+  });
+
+  it('internasional 8-led panjang (Japan +81 80-4204-5600) → TIDAK di-62-kan', () => {
+    expect(waKirim('818042045600')).toBe('818042045600');
+  });
+
+  it('internasional negara lain (+65) → apa adanya', () => {
+    expect(waKirim('6591234567')).toBe('6591234567');
+    expect(waKirim('12025550100')).toBe('12025550100');
+  });
+
+  it('kosong / non-digit → kosong', () => {
+    expect(waKirim('')).toBe('');
+    expect(waKirim(null)).toBe('');
+    expect(waKirim('abc')).toBe('');
   });
 });

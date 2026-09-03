@@ -133,6 +133,12 @@ export const ui = {
     message_preview: '最初のメッセージのプレビュー',
     list_preview_n: '{n}名を読み込みました',
     variant_count_n: '{n}種類のメッセージ（受信者ごとに交代）',
+    autovarian_btn: '自動バリアント（BAN対策）',
+    autovarian_hint:
+      'このテンプレートから挨拶・結びのバリエーションを2〜4つ自動作成（区切り: ',
+    autovarian_hint2: ' — 元のメッセージは #1 のまま、内容とリンクは変更されません）。',
+    autovarian_ok: '自動生成: {n}通作成 — 元のメッセージは #1 のまま。',
+    autovarian_exists: 'テンプレートは既に {n} 種類あります。',
     toast_invalid_rows_n: '{n}行が無効です（形式: 名前|628xxx）— 除外しました。',
     toast_no_valid_wa: '有効なWA番号がありません。',
     toast_confirm_send_n:
@@ -395,6 +401,7 @@ export const ui = {
     searching_data: 'データ検索中…',
     send_wa_call: 'WA呼び出しを送信',
     sending: '送信中…',
+    sending_wait_rl: 'サーバー待機中… {s}秒',
     confirm_delete_mail: 'この応募データを完全に削除しますか？',
     delete_mail: '応募を削除',
     delete_selected_mail: '選択削除',
@@ -473,6 +480,7 @@ export const ui = {
     toast_group_link_required: 'グループリンクは必須です！',
     toast_invite_send_failed: '招待送信失敗：',
     toast_invites_done_n: '完了！{n}件の招待を処理しました。',
+    toast_invites_done_failed_n: '（失敗 {n}）',
     toast_item_exists: 'この項目はすでにリストにあります！',
     toast_load_data_failed: 'データの読み込みに失敗しました。もう一度お試しください。',
     toast_load_data_failed_prefix: 'データの読み込み失敗：',

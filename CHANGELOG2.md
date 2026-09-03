@@ -2,6 +2,17 @@
 
 > Format: hash — deskripsi. Riwayat detail sesi: PROGRESS2.md.
 
+## 2026-09-03
+
+- `?` fix(wa): kirim WA massal cuma 1x lalu berhenti — pacing dipindah ke browser (kirimBertahap per-nomor + jeda acak anti-ban), handler baru kirimSatuTawaran, progres (i/n)
+- `?` refactor(core): withRetry dipusatkan di js/core/retry.ts — duplikat dihapus dari 4 modul ai_copilot + 3 halaman standalone (ai_form/share/siswa_baru); check-globals lulus lagi (nol kolisi) + unit test
+- `?` refactor(shared): parseVarianPesan/splitPesanVariants dipusatkan di shared/wa-text.ts — parsing varian `---` satu sumber kebenaran frontend (preview) ↔ backend (kirim massal/per-nomor)
+- `?` refactor(core): duplikat escapeHtml/base64ToBlob/downscaleScanImage di halaman fork ai_form/siswa_baru → js/core/html.ts + js/core/file.ts (+unit test; drift truthiness siswa_baru dikoreksi ke null-safe)
+- `?` feat(wa): parseDaftarOrtu kini membaca tempelan daftar anggota WhatsApp ("1. Nama +62 831-9187-1783") via shared/wa-list.ts — nomor urut dibuang dari nama
+- `?` feat(wa): nomor internasional eksplisit (+81/+65/…) valid untuk daftar undangan grup — parser wa-list + waKirim di actions-wa (8-led panjang tidak lagi di-62-kan); gate 628 untuk data kandidat tidak berubah
+- `?` feat(wa): tombol "Auto-Varian Anti-Ban" di modal Undangan Grup Kelas — generateVarianOtomatisKelas + buatVarianPesanOtomatis (shared/wa-text): 1 template → 2-4 variasi pembuka/penutup (asli tetap #1, isi/link tak berubah)
+- `?` fix(wa): kirim batch hanya 1 pesan yang sampai karena RATE LIMIT server (FONNTE_ACTIONS 2/menit) ditandai gagal diam-diam — kirimBertahap kini retry otomatis setelah retryAfter (+1 dtk, maks 3×), tombol menampilkan "Menunggu jeda server…", toast akhir menampilkan jumlah gagal
+
 ## 2026-08-27
 
 - `?` fix(backend): perbaiki fetch limit 500 di ai/cv.ts (findMasterByWa, handleSubmitDataAsj, handleSimpanDataTtdNaitei)

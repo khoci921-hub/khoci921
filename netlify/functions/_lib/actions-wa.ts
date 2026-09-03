@@ -1,4 +1,5 @@
 import { normalizeWa, supabaseJson } from './db/client';
+import { splitPesanVariants } from '../../../shared/wa-text.ts';
 import { env } from './env';
 import { requireRole } from './actions-auth';
 import { cacheClearKey } from './cache';
@@ -80,6 +81,20 @@ async function fonnteSend(target, message) {
   }
 }
 
+// Normalisasi NOMOR KIRIM (bukan gate identitas kandidat):
+//   - 0xx → 62xx dan 8xx-domestik pendek (≤11 digit) → 62+…  (normalizeWa)
+//   - 62… → sudah baku, biarkan.
+//   - Lainnya (nomor INTERNASIONAL dari daftar undangan grup kelas:
+//     81…, 65…, 44…, dst) → dipakai apa adanya. Kritis: 8-led panjang
+//     (mis. 818042045600 = +81 80-4204-5600) TIDAK boleh di-62-kan karena
+//     terlihat seperti 8xx domestik — batas ≤11 digit membedakannya.
+function waKirim(x) {
+  const d = String(x || '').replace(/\D/g, '');
+  if (!d) return '';
+  if (d.startsWith('0') || (d.startsWith('8') && d.length <= 11)) return normalizeWa(d);
+  return d;
+}
+
 async function handleKirimSatuPesanFonnte(payload, sessionToken) {
   const guard = requireRole(sessionToken, 'admin');
   if (guard.error) return guard.error;
@@ -87,7 +102,7 @@ async function handleKirimSatuPesanFonnte(payload, sessionToken) {
   const message = String((payload && payload[1]) || '');
   if (!wa || !message) return { success: false, error: 'Nomor WA dan pesan wajib diisi.' };
   try {
-    const result = await fonnteSend(normalizeWa(wa), message);
+    const result = await fonnteSend(waKirim(wa), message);
     return { success: true, result };
   } catch (e) {
     return { success: false, error: e.message };
@@ -99,6 +114,8 @@ async function handleKirimSatuPesanFonnte(payload, sessionToken) {
 // `<<NAMA>>`/`<<JOB>>`/`<<LINK>>` (WA Pintar frontend) DAN
 // `{job_code}`/`{link_grup}` (matchmaking esign). Tanpa ini template yang
 // disimpan admin dengan `<<NAMA>>` terkirim mentah ke kandidat.
+// Parsing varian `---` (splitPesanVariants) di shared/wa-text.ts — satu
+// sumber kebenaran frontend↔backend (candidates.ts alias parseVarianPesan).
 function applyTemplatePlaceholders(text, nama, jobCode, linkGrup) {
   return String(text || '')
     .replace(/\{nama\}/g, nama)
@@ -137,6 +154,13 @@ function buildPesanTawaranMassal(variants, templateIsi, nama, jobCode, linkGrup,
 }
 
 // kirimTawaranMassal([{candidates, jobCode, linkGrup, interval, customMessage}])
+// ⚠️ 2026-09-03: UI kini memakai jalur per-nomor handleKirimSatuTawaran
+// (kirimBertahap di js/admin_ops/candidates.js). Versi massal ini menidurkan
+// `interval` detik ANTAR pesan DI DALAM SATU invokasi fungsi Netlify — fungsi
+// sinkron Netlify dibunuh platform setelah ~10 dtk (default; maks 26 dtk),
+// jadi dengan jeda 10 dtk hanya pesan pertama yang terkirim lalu berhenti
+// (bug: WA Pintar cuma kirim 1x). Dipertahankan utk kompatibilitas pemanggil
+// lama; perilaku TIDAK berubah.
 async function handleKirimTawaranMassal(payload, sessionToken) {
   const guard = requireRole(sessionToken, 'admin');
   if (guard.error) return guard.error;
@@ -148,10 +172,7 @@ async function handleKirimTawaranMassal(payload, sessionToken) {
   const interval = Math.max(Number(d.interval) || 5, 1);
   const results = [];
   // customMessage boleh berisi BANYAK VARIAN pesan, dipisah baris `---`.
-  const variants = String(d.customMessage || '')
-    .split(/^---\s*$/m)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const variants = splitPesanVariants(d.customMessage);
   try {
     let templateIsi = null;
     try {
@@ -173,7 +194,7 @@ async function handleKirimTawaranMassal(payload, sessionToken) {
     }
     for (let i = 0; i < cands.length; i += 1) {
       const c = cands[i];
-      const wa = normalizeWa(String(c.wa || ''));
+      const wa = waKirim(c.wa);
       const nama = String(c.nama || 'Kandidat');
       const message = buildPesanTawaranMassal(variants, templateIsi, nama, jobCode, linkGrup, i);
       try {
@@ -190,10 +211,44 @@ async function handleKirimTawaranMassal(payload, sessionToken) {
   }
 }
 
+// Satu pesan = SATU panggilan (dipakai loop bertahap frontend —
+// kirimBertahap di js/admin_ops/candidates.js). Handler stateless & cepat:
+// tanpa jeda, tanpa baca DB — seluruh konteks (termasuk templateIsi fallback
+// yang di-resolve frontend dari ALL_WA_TEMPLATES) dikirim per pemanggilan,
+// selesai <2 dtk sehingga tidak pernah kena timeout platform Netlify.
+// Pacing antar nomor (jeda acak anti-ban) dijalankan BROWSER, bukan di sini.
+async function handleKirimSatuTawaran(payload, sessionToken) {
+  const guard = requireRole(sessionToken, 'admin');
+  if (guard.error) return guard.error;
+  const d = (payload && payload[0]) || {};
+  const wa = waKirim(d.wa);
+  if (!wa) return { success: false, error: 'Nomor WA tidak valid.' };
+  const nama = String(d.nama || 'Kandidat');
+  const index = Math.max(Number(d.index) || 0, 0);
+  const jobCode = String(d.jobCode || '');
+  const linkGrup = String(d.linkGrup || '');
+  const customMessage = String(d.customMessage || '');
+  // templateIsi (fallback saat customMessage kosong) dikirim frontend dari
+  // ALL_WA_TEMPLATES — aturan pemilihan sama dengan versi massal: template
+  // wa_templates yang namanya mengandung grup/undang.
+  const templateIsi = String(d.templateIsi || '') || null;
+  const variants = splitPesanVariants(customMessage);
+  const message = buildPesanTawaranMassal(variants, templateIsi, nama, jobCode, linkGrup, index);
+  try {
+    const result = await fonnteSend(wa, message);
+    return { success: true, wa, nama, result };
+  } catch (e) {
+    return { success: false, wa, nama, error: e.message };
+  }
+}
+
 export {
   handleSimpanWaTemplate,
   handleHapusWaTemplate,
   handleKirimSatuPesanFonnte,
+  handleKirimSatuTawaran,
   handleKirimTawaranMassal,
   buildPesanTawaranMassal,
+  splitPesanVariants,
+  waKirim,
 };

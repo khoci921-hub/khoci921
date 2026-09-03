@@ -1166,10 +1166,10 @@
 // ANTI-CACHE: cek apakah SW serve versi lama. Kalau iya, force reload.
 // Delay 2s supaya SW sempat register+cache dulu → mencegah loop.
 // sessionStorage guard: cuma fire 1x per deploy.
-setTimeout(function(){var E="app-d582601675";try{if(sessionStorage.getItem('asj_ac_v')===E)return;if(!navigator.serviceWorker||!navigator.serviceWorker.controller)return;caches.match("/assets/"+E+".js").then(function(r){if(!r){sessionStorage.setItem('asj_ac_v',E);console.log("[anti-cache] Stale SW, force reload...");navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(reg){reg.unregister()});location.reload(true)})}}).catch(function(){})}catch(e){}},2000);
+setTimeout(function(){var E="app-2179a5baf1";try{if(sessionStorage.getItem('asj_ac_v')===E)return;if(!navigator.serviceWorker||!navigator.serviceWorker.controller)return;caches.match("/assets/"+E+".js").then(function(r){if(!r){sessionStorage.setItem('asj_ac_v',E);console.log("[anti-cache] Stale SW, force reload...");navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(reg){reg.unregister()});location.reload(true)})}}).catch(function(){})}catch(e){}},2000);
 </script>
 <!-- /ANTI-CACHE -->
-<script src="/assets/app-d582601675.js"></script>
+<script src="/assets/app-2179a5baf1.js"></script>
 <!-- FIX 2026-08-12: admin TIDAK memakai lazy-load vendor renderer. Admin panel
        adalah kerja verifikasi data (preview berkas kandidat terus-menerus) —
        tunggu diam-diam saat script dimuat membuat admin ragu apakah data sudah

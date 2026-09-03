@@ -10,6 +10,11 @@
 | ---------- | -------- | --------------------------------------- | ----------- |
 | 2026-08-20 | Buffy    | A1-A5 Core ESM + B1-B5 Frontend (10/10) | pending     |
 | 2026-08-27 | AI Agent | Debug fix fetch limit 500 in ai/cv.ts   | pending     |
+| 2026-09-03 | Buffy    | D12 fix kirim WA massal 1x + kolisi withRetry (K5) | pending |
+| 2026-09-03 | Buffy    | D13 audit duplikasi helper + pusatkan (wa-text/html/file) | pending |
+| 2026-09-03 | Buffy    | D13b parse daftar tempelan WA (shared/wa-list.ts) | pending |
+| 2026-09-03 | Buffy    | D13c izinkan nomor internasional (+81/+65) utk undangan grup | pending |
+| 2026-09-03 | Buffy    | D13d tombol Auto-Varian Anti-Ban di modal Undangan Grup | pending |
 
 ---
 
@@ -126,6 +131,7 @@
 - [x] Hardcoded confirm() FIXED → `tr('ui.confirm_remove_cand_from_job')`
 - [x] `parseDaftarOrtu()`: WA validation via normalizeWaInput + isValidWaInput — benar
 - [x] `kirimUndanganKelas()`: batch via `kirimTawaranMassal` — benar
+- [x] `kirimUndanganKelas()`: 2026-09-03 diganti `kirimBertahap` (per-nomor) — lihat D12
 - [x] XSS: all dynamic values use `esc()`/`escJs()` — benar
 - [x] i18n: all UI text via `tr()` — benar
 - [x] **Audit detail**: `docs/evals/2026-08-20-admin-candidates-debug.md`
@@ -270,6 +276,143 @@
 - [ ] Multi-device: membuka portal di desktop tidak menghapus badge di HP.
 - [ ] Clear: membuka portal pada HP menghapus badge HP saja.
 - [ ] Fallback: tanpa Badging API, notifikasi tetap tampil.
+
+### D12. Kirim WA massal bertahap (kirimBertahap) ✅ DIPERBAIKI (2026-09-03)
+
+- [x] **BUG 2026-09-03 — "WA Pintar cuma kirim WA 1x, abis itu berhenti"**
+  - Root cause: `handleKirimTawaranMassal` (actions-wa.js) menidurkan `interval`
+    detik ANTAR pesan DI DALAM SATU invokasi fungsi Netlify. Fungsi sinkron
+    Netlify dibunuh platform setelah ~10 dtk (default; maks 26 dtk) → dengan
+    jeda default 10 dtk hanya pesan pertama yang terkirim lalu proses mati.
+    Regresi dari refactor 2026-08-09 (loop client-side → satu panggilan server).
+  - Fix backend `netlify/functions/_lib/actions-wa.js`: tambah handler
+    `handleKirimSatuTawaran` (1 pesan = 1 panggilan stateless & cepat, tanpa
+    jeda, tanpa baca DB — `templateIsi` fallback dikirim frontend); parsing
+    varian `---` dipusatkan di `splitPesanVariants` (dipakai massal + per-nomor);
+    action terdaftar di registry + FONNTE_ACTIONS + api-client (ADMIN_ACTIONS &
+    route `whatsapp`).
+  - Fix frontend `js/admin_ops/candidates.js` (+ `js/12_esign_match.js` blast):
+    helper bersama `kirimBertahap` (loop per nomor via `kirimSatuTawaran`, jeda
+    acak anti-ban `interval` s.d. `interval+50%` dijalankan BROWSER, progres
+    `(i/n)` di tombol, kegagalan 1 nomor tidak menghentikan sisa daftar);
+    dipakai `kirimUndanganKelas`, `mulaiKirimUndanganGrup`, dan
+    `kirimTawaranMassal` (matchmaking).
+  - Unit test ditambah: `splitPesanVariants` (parsing `---`) + komposisi pesan
+    per-nomor identik dengan semantik massal (actions-wa.test.js) — 303/303 pass.
+  - [ ] TODO live: deploy ulang, lalu tes kirim undangan ke ≥3 nomor — pastikan
+        semua nomor menerima pesan bergilir dengan jeda sesuai input.
+
+### D12b. RATE LIMIT Fonnte vs kirim bertahap ✅ DIPERBAIKI (2026-09-03)
+
+- [x] **Gejala user** — setelah perbaikan D12, kirim undangan grup 21 ortu
+      hanya 1 pesan yang benar-benar sampai (kuota Fonnte used=1); sisanya
+      tidak tiba tanpa error yang terlihat.
+- [x] **Root cause** — `FONNTE_ACTIONS` di-rate-limit `{limit:2, windowMs:60s}`
+      per admin/IP (handlers.ts rateLimitChecks) → nomor ke-3 dst dibalas
+      `{success:false, rateLimited:true, retryAfter}`. `kirimBertahap` lama
+      mencatatnya sebagai GAGAL diam-diam (tanpa retry) → batch 21 ortu hanya
+      lolos 1-2 pesan. Bukan kegagalan Fonnte/Netlify — API & token sehat
+      (tes kirimSatuPesanFonnte langsung: status:true, "message in queue").
+- [x] **Fix `kirimBertahap`** (js/admin_ops/candidates.ts) — saat server
+      membalas `rateLimited` → tunggu `retryAfter + 1` dtk lalu ULANGI nomor
+      yang sama (maks 3 percobaan). Batch kini terkirim SEMUA dengan pace
+      ~1 pesan/30 dtk (mengikuti batas server 2/menit), bukan gagal di nomor
+      ke-3. Berlaku untuk semua jalur: Undang Grup Kelas, Undang Grup DB,
+      blast matchmaking (semua via kirimBertahap).
+- [x] **UI** — tombol menampilkan "Menunggu jeda server… {n} dtk (i/n)" saat
+      retry (key i18n `sending_wait_rl`, id+jp); toast akhir menampilkan jumlah
+      gagal bila ada (`toast_invites_done_failed_n`).
+- [x] Unit test baru `js/admin_ops/candidates.test.ts` (3): rateLimited →
+      retry sampai sukses; rateLimited berulang → maks 3 percobaan lalu gagal;
+      onProgress menerima info.menungguRateLimit.
+- [x] Verifikasi: tsc 0 error · vitest 344/344 · check-globals nol kolisi ✓ ·
+      bundel `assets/app-2179a5baf1.js`.
+- [ ] Catatan UX: pace nyata ~1 pesan/30 dtk karena batas server 2/menit —
+      untuk 21 ortu total ±10 menit; tombol menampilkan status menunggu.
+      Kalau mau lebih cepat: naikkan limit server FONNTE_ACTIONS (keputusan
+      keamanan) — saat ini 2/menit per admin.
+
+### D13. Audit duplikasi helper & pemusatan (2026-09-03) ✅
+
+- [x] **Metode** — enumerasi seluruh deklarasi top-level (`function`/`const`)
+      js/ + netlify/functions/_lib/ + shared/ (828 deklarasi) → nama yang
+      dideklarasikan di 2+ file dibandingkan BODY-nya (diff). 35 nama duplikat
+      ditemukan; 33 berbody identik/drifty kecil tapi terikat state modul
+      halaman (fork) → dilaporkan, TIDAK dipaksa gabung.
+- [x] **Dipusatkan** (body identik / drift yang disengaja dikoreksi):
+  - `parseVarianPesan` (js/admin_ops/candidates.js) ≡ `splitPesanVariants`
+    (netlify/functions/_lib/actions-wa.js) → `shared/wa-text.ts` satu sumber
+    kebenaran frontend↔backend; alias `parseVarianPesan` dipertahankan utk
+    seam window.*. Test kontrak: `shared/wa-text.test.ts`.
+  - `escapeHtml` (fork ai_form/siswa_baru) → `js/core/html.ts` — versi
+    kanonikal null-safe (siswa_baru memakai truthiness: 0/false ikut
+    dikosongkan — drift diperbaiki).
+  - `base64ToBlob` & `downscaleScanImage` (fork ai_form/siswa_baru, byte-
+    identik & murni) → `js/core/file.ts`. Unit test base64ToBlob + escapeHtml.
+- [x] **Sengaja TIDAK digabung** (semantik/boundary beda): replacer placeholder
+      `08_wa_pintar.ts` (hanya <<NAMA>>/<<JOB>>, sisakan token tak dikenal utk
+      diedit user) vs `applyTemplatePlaceholders` server (superset + link —
+      memakai shared di sini akan mengganti <<LINK>> kosong); tidur client
+      `sleepAcak` (jitter anti-ban) vs tidur server fixed; isi default pesan
+      undangan (3 teks beda audiens); body IDENTIK tapi terikat state modul
+      halaman (sendMessage/saveToDatabase/handleDocUpload/… ai_form vs
+      siswa_baru; changeStep/handleFile/totalSteps apply_full vs master_full;
+      initApp engine vs halaman); pasangan backend APPLY_WA_COLS/CAND_WA_COLS/
+      findMasterByWa/handleShareData (identik, lapisan terpisah — kandidat
+      refactor lanjutan, bukan bug); formatInputWA/preview util di
+      init/util·preview vs salinan halaman.
+- [x] Verifikasi: tsc 0 error · vitest 318/318 · check-globals nol kolisi ✓ ·
+      bundel baru `assets/app-e3ab3cbb74.js` (+ ai_form.js, siswa_baru.js).
+
+### D13b. Parsing daftar tempelan dari WhatsApp (shared/wa-list.ts) ✅ (2026-09-03)
+
+- [x] **Laporan user** — paste daftar anggota WA ("1. KHARINA DWI SAPUTRI
+      +62 831-9187-1783") di modal Undangan Grup Kelas: hanya 1/21 baris yang
+      terbaca oleh `parseDaftarOrtu` lama (butuh digit kontigu di akhir baris;
+      nomor urut "1. " ikut jadi nama).
+- [x] **Fix** — parser murni `parseDaftarOrtuRows` di `shared/wa-list.ts`
+      (satu sumber kebenaran, diimpor `candidates.ts`): menerima nomor urut
+      (dibuang dari nama), `+62`, separator spasi/-/()/., 0xx/8xx→62xx;
+      format lama `Nama|WA` tetap jalan. Kode negara eksplisit non-+62
+      ditolak — tanpa ini `+81 80-4204-5600` lolos gate 628 (digit awal 8
+      mirip 0818 domestik padahal nomor Jepang).
+- [x] Unit test `shared/wa-list.test.ts` (format lama + tempelan WA + +81
+      invalid). Hasil 21 baris riil: 20 valid, 1 invalid (#15 +81).
+      Verifikasi: tsc 0 · vitest 326/326 · check-globals ✓ · bundel
+      `assets/app-fca4c360a7.js`.
+
+### D13c. Nomor internasional (+81/+65/…) untuk daftar undangan grup ✅ (2026-09-03)
+
+- [x] **Keputusan** — nomor asing EKSPLISIT ("+81 80-4204-5600", "+65 …")
+      sah di modal Undangan Grup Kelas, TERPISAH dari gate 628 identitas
+      kandidat (shared/wa-rules.ts TIDAK disentuh — login/daftar/SATRIA
+      tetap 628…).
+- [x] `shared/wa-list.ts`: prefiks '+' → digit apa adanya (bukan 0xx/8xx→62),
+      panjang 8-15 (E.164); +62 eksplisit tetap jadi 628…; tanpa '+' tetap
+      asumsi domestik (8180… tanpa '+' tidak bisa dibedakan dari 0818…).
+- [x] **Backend kirim** `actions-wa.ts`: `normalizeWa` → `waKirim` di semua
+      handler kirim — 0xx/8xx-domestik pendek (≤11 digit) di-62-kan, nomor
+      internasional 8-led panjang (8180…) TIDAK di-62-kan lagi. Unit test
+      waKirim + parse internasional. 21 baris riil kini **21/21 valid**
+      (#15 → 818042045600). Verifikasi: tsc 0 · vitest 336/336 ·
+      check-globals ✓ · bundel `assets/app-c1c263ef38.js`.
+
+### D13d. Tombol "Auto-Varian Anti-Ban" di modal Undangan Grup Kelas ✅ (2026-09-03)
+
+- [x] User mengisi template TANPA varian `---` → semua penerima dapat pesan
+      identik (risiko banned). Tombol baru di modal (partials/modals-shared)
+      memanggil `generateVarianOtomatisKelas()` (candidates.ts) →
+      `buatVarianPesanOtomatis(tpl)` di shared/wa-text.ts.
+- [x] Generator murni: varian #1 = teks ASLI (tidak diubah); varian 2-4
+      mengganti baris sambutan & "Terima kasih…", tanda tangan organisasi
+      dipertahankan, {nama}/{link_grup}/isi tidak disentuh; pemisah `---`
+      otomatis. Jumlah target = min(maks 4, jumlah penerima terdaftar) supaya
+      ≤4 penerima masing-masing dapat varian unik. Template yang sudah
+      multi-varian → toast peringatan (tidak ditimpa).
+- [x] Teks UI: data-lang baru (autovarian_*) di i18n id+jp (paritas ✓),
+      alias window + types/globals.d.ts. Verifikasi: tsc 0 · vitest 341/341 ·
+      check-globals ✓ · check:i18n ✓ · bundel `assets/app-b7b565b412.js` +
+      assets/modals-shared.html di-rebuild.
 
 ---
 
@@ -618,6 +761,10 @@
 ### K5. `scripts/check-globals.mjs` — Global Pollution Checker ✅ RE-AUDITED (2026-08-20)
 
 - [x] Global audit tool ✅
+- [x] 2026-09-03: kolisi `withRetry` (deklarasi ganda di 4 modul ai_copilot)
+      → helper dipusatkan `js/core/retry.ts` (import ESM); salinan di halaman
+      standalone (ai_form/share/siswa_baru) juga dirapikan — check-globals
+      lulus kembali: nol kolisi ✓ (unit test: js/core/retry.test.ts)
 
 ### K6. `scripts/check-i18n.mjs` — i18n Checker ✅ RE-AUDITED (2026-08-20)
 
@@ -694,7 +841,7 @@
 | --------------------- | ------------ | ----------- || A. Core ESM | 5 parts | ✅ 5/5 |
 | B. Frontend Core | 5 parts | ✅ 5/5 |
 | C. Admin Panel | 11 parts | ✅ 11/11 |
-| D. Candidate Features | 10 parts | ✅ 10/10 |
+| D. Candidate Features | 11 parts | ✅ 11/11 |
 | E. AI Features | 4 parts | ✅ 4/4 |
 | F. Public Pages | 8 parts | ✅ 8/8 |
 | G. Backend Core | 6 parts | ✅ 6/6 |
@@ -704,7 +851,7 @@
 | K. Build & Scripts | 8 parts | ✅ 8/8 |
 | L. Tests | 2 parts | ✅ 2/2 |
 | M. HTML Pages | 7 parts | ✅ 7/7 |
-| **TOTAL** | **92 parts** | **✅ 92/92** |
+| **TOTAL** | **93 parts** | **✅ 93/93** |
 
 ---
 
